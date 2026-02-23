@@ -2,950 +2,1168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Tales - Truth Awaits</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>The Tales - Online Adventure</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Cinzel', system-ui, sans-serif;
+            user-select: none;
+        }
+
+        :root {
+            --primary: #c9a959;
+            --primary-dark: #9e8142;
+            --background: #0a0806;
+            --surface: #1a1510;
+            --surface-light: #2a221c;
+            --text: #f0e6d2;
+            --text-muted: #8a7a64;
+            --gold: #d4af37;
+            --gold-light: #f5e6b3;
+            --border: #3a2e24;
+            --success: #4caf50;
+            --error: #f44336;
+            --panel: rgba(20, 15, 10, 0.95);
         }
 
         body {
-            background: linear-gradient(135deg, #0a0f1e, #1a1f2f);
+            background: var(--background);
+            color: var(--text);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-        }
-
-        .game-container {
-            background: rgba(10, 15, 30, 0.95);
-            backdrop-filter: blur(10px);
-            border: 2px solid #00ffff;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
-            border-radius: 30px;
-            padding: 40px;
-            width: 90%;
-            max-width: 800px;
-            min-height: 600px;
-            position: relative;
             overflow: hidden;
-        }
-
-        .game-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Connection Status */
-        .connection-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 100;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .connected .status-dot {
-            background: #00ff00;
-            box-shadow: 0 0 10px #00ff00;
-        }
-
-        .disconnected .status-dot {
-            background: #ff0000;
-            box-shadow: 0 0 10px #ff0000;
-        }
-
-        /* Intricate Logo */
-        .logo-container {
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            perspective: 1000px;
-        }
-
-        .intricate-logo {
-            font-size: 6rem;
-            font-weight: 900;
-            position: relative;
-            display: inline-block;
-            padding: 20px 50px;
-            background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            letter-spacing: 15px;
-            border: 3px solid transparent;
-            border-image: linear-gradient(45deg, #00ffff, #ff00ff);
-            border-image-slice: 1;
-            border-radius: 20px;
-            transform-style: preserve-3d;
-            animation: float3d 6s infinite ease-in-out;
-        }
-
-        .intricate-logo::before {
-            content: '⚡';
-            position: absolute;
-            left: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 3rem;
-            color: #00ffff;
-            filter: drop-shadow(0 0 10px #ff00ff);
-            animation: pulse 2s infinite;
-        }
-
-        .intricate-logo::after {
-            content: '⚡';
-            position: absolute;
-            right: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 3rem;
-            color: #ff00ff;
-            filter: drop-shadow(0 0 10px #00ffff);
-            animation: pulse 2s infinite reverse;
-        }
-
-        @keyframes float3d {
-            0%, 100% { transform: rotateY(0deg) translateZ(0); }
-            50% { transform: rotateY(10deg) translateZ(20px); }
-        }
-
-        /* Circular Loader */
-        .circular-loader {
-            width: 200px;
-            height: 200px;
-            margin: 40px auto;
-            position: relative;
-        }
-
-        .loader-circle {
+            position: fixed;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 10px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00ffff;
-            border-right-color: #ff00ff;
-            border-bottom-color: #00ffff;
-            border-left-color: #ff00ff;
-            animation: spin 2s linear infinite;
         }
 
-        .loader-progress {
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+
+        .loading-logo {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .loading-shield {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 0 0 20px #00ffff;
+            width: 150px;
+            height: 170px;
+            background: linear-gradient(135deg, var(--gold), #5a3e1a);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            animation: pulse 2s infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Login Form */
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .input-group input:focus {
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            border-color: #ff00ff;
-        }
-
-        .input-group label {
+        .loading-a, .loading-b {
             position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #888;
-            pointer-events: none;
-            transition: 0.3s;
-            background: #1a1f2f;
-            padding: 0 5px;
+            font-size: 60px;
+            color: var(--gold);
         }
 
-        .input-group input:focus ~ label,
-        .input-group input:valid ~ label {
-            top: -10px;
-            font-size: 0.8rem;
-            color: #00ffff;
-        }
+        .loading-a { left: 20px; top: 40px; }
+        .loading-b { right: 20px; bottom: 40px; }
 
-        .btn {
-            padding: 18px;
-            background: linear-gradient(45deg, #00ffff, #ff00ff);
-            border: none;
-            border-radius: 15px;
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            position: relative;
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: var(--surface);
+            border-radius: 2px;
             overflow: hidden;
         }
 
-        .btn::before {
-            content: '';
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: var(--gold);
+            animation: load 2s ease-out forwards;
+        }
+
+        /* Login Screen */
+        .login-screen {
             position: absolute;
             top: 0;
-            left: -100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.5);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Game Sections */
-        .game-section {
-            display: none;
-        }
-
-        .game-section.active {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            display: none;
-            padding: 15px;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 15px;
-            margin: 10px 0;
-        }
-
-        .typing-indicator.active {
+            background: linear-gradient(135deg, #0f0c08, #1a1510);
             display: flex;
-            gap: 5px;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
         }
 
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #00ffff;
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
+        .login-screen.hidden {
+            display: none;
         }
 
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
+        .login-panel {
+            width: 90%;
+            max-width: 400px;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--gold);
+            border-radius: 30px;
+            padding: 40px 30px;
         }
 
-        /* Gift Popup */
-        .gift-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(135deg, #00ffff, #ff00ff);
-            padding: 40px;
-            border-radius: 50%;
-            box-shadow: 0 0 100px rgba(255, 0, 255, 0.8);
-            z-index: 2000;
-            animation: giftAppear 0.5s forwards;
+        .login-header {
             text-align: center;
+            margin-bottom: 30px;
         }
 
-        @keyframes giftAppear {
-            to { transform: translate(-50%, -50%) scale(1); }
+        .login-header h1 {
+            color: var(--gold);
+            font-size: 36px;
+            margin-bottom: 10px;
         }
 
-        .gift-popup .gift-icon {
-            font-size: 5rem;
+        .login-header p {
+            color: var(--text-muted);
+        }
+
+        .input-field {
             margin-bottom: 20px;
         }
 
-        .gift-popup .gift-close {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #fff;
+        .input-field label {
+            display: block;
+            color: var(--gold);
+            font-size: 12px;
+            margin-bottom: 5px;
         }
 
-        /* Clue Container */
-        .clue-container {
-            margin: 30px 0;
-            padding: 25px;
-            background: rgba(0, 255, 255, 0.05);
-            border-left: 4px solid #00ffff;
-            border-right: 4px solid #ff00ff;
-            border-radius: 20px;
-        }
-
-        .clue-title {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #00ffff;
-            text-shadow: 0 0 10px #ff00ff;
-        }
-
-        .options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 25px 0;
-        }
-
-        .option-btn {
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            color: #fff;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 1.1rem;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            background: rgba(0, 255, 255, 0.2);
-            border-color: #ff00ff;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .host-response {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255, 0, 255, 0.1);
-            border-radius: 15px;
-            border: 1px solid #ff00ff;
-            line-height: 1.6;
-            animation: glow 2s infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 10px #ff00ff; }
-            50% { box-shadow: 0 0 20px #00ffff; }
-        }
-
-        .question-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 15px;
-        }
-
-        .question-input {
+        .input-field input {
             width: 100%;
             padding: 15px;
-            margin: 10px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff00ff;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
+            background: black;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--gold);
+            font-size: 16px;
         }
 
-        .ask-btn {
-            padding: 12px 25px;
-            background: transparent;
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            border-radius: 10px;
+        .input-field input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), #9e7e2c);
+            border: none;
+            border-radius: 12px;
+            color: black;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* Game HUD */
+        .game-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .game-hud.visible {
+            display: block;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            height: 60px;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--gold);
+            border-radius: 30px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .game-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .player-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--surface);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .menu-btn {
+            width: 45px;
+            height: 45px;
+            background: var(--surface);
+            border: 2px solid var(--gold);
+            border-radius: 23px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .menu-btn span {
+            width: 18px;
+            height: 2px;
+            background: var(--gold);
+        }
+
+        /* Main Canvas */
+        .game-canvas {
+            position: absolute;
+            top: 90px;
+            left: 15px;
+            right: 15px;
+            bottom: 80px;
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--gold);
+            border-radius: 30px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            height: 60px;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--gold);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 10;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .action-icon { font-size: 20px; }
+        .action-label { font-size: 10px; color: var(--text-muted); }
+
+        /* Content Cards */
+        .content-card {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--surface);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .option-tile {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .option-tile.selected {
+            border-color: var(--gold);
+            background: rgba(212,175,55,0.1);
+        }
+
+        /* Level Grid */
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .level-node {
+            aspect-ratio: 1;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .level-node.unlocked { border-color: var(--gold); }
+        .level-node.completed { background: var(--success); }
+        .level-node.locked { opacity: 0.5; filter: grayscale(0.8); cursor: not-allowed; }
+
+        /* Feature Pages */
+        .feature-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            z-index: 2000;
+            transform: translateX(100%);
             transition: 0.3s;
-            margin-right: 10px;
+            overflow-y: auto;
         }
 
-        .ask-btn:hover:not(:disabled) {
-            background: #00ffff;
-            color: #000;
+        .feature-page.active {
+            transform: translateX(0);
         }
 
-        .popup {
+        .feature-header {
+            position: sticky;
+            top: 0;
+            background: var(--panel);
+            border-bottom: 2px solid var(--gold);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            width: 45px;
+            height: 45px;
+            background: var(--surface);
+            border: 2px solid var(--gold);
+            border-radius: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .feature-content {
+            padding: 20px;
+        }
+
+        /* Chat */
+        .chat-container {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        .message.host .message-bubble {
+            background: var(--surface-light);
+            border: 1px solid var(--gold);
+        }
+
+        .message.player .message-bubble {
+            background: var(--gold);
+            color: black;
+            margin-left: auto;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            gap: 10px;
+            border-top: 2px solid var(--border);
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            background: black;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--gold);
+        }
+
+        .chat-input-area button {
+            padding: 12px 20px;
+            background: var(--gold);
+            border: none;
+            border-radius: 8px;
+            color: black;
+            font-weight: 600;
+        }
+
+        /* Notifications */
+        .game-toast {
             position: fixed;
             top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #00ffff, #ff00ff);
-            padding: 20px 40px;
-            border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 0 40px rgba(255, 0, 255, 0.6);
-            animation: slideDown 0.5s ease-out;
-            z-index: 1000;
+            right: 20px;
+            background: var(--panel);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 15px;
+            z-index: 10000;
+            animation: slideIn 0.3s;
+            max-width: 300px;
         }
 
-        @keyframes slideDown {
-            from { top: -100px; opacity: 0; }
-            to { top: 20px; opacity: 1; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
         }
+
+        .hidden { display: none !important; }
+
+        /* Connection Status */
+        .connection-status {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-online { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
+        .status-offline { background: #f44336; }
     </style>
-    <!-- Socket.IO client -->
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
-    <div class="game-container" id="gameContainer">
-        <!-- Connection Status -->
-        <div id="connectionStatus" class="connection-status disconnected">
-            <span class="status-dot"></span>
-            <span id="statusText">Connecting...</span>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-logo">
+            <div class="loading-shield"></div>
+            <div class="loading-a">A</div>
+            <div class="loading-b">B</div>
         </div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <div style="margin-top: 20px; color: var(--gold);" id="loadingText">Connecting to server...</div>
+    </div>
 
-        <!-- Login Page -->
-        <div id="loginPage" class="game-section active">
-            <div class="logo-container">
-                <div class="intricate-logo">A&B</div>
-                <p style="color: #00ffff; margin-top: 20px; letter-spacing: 3px;">THE TRUTH AWAITS</p>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-panel">
+            <div class="login-header">
+                <h1>THE TALES</h1>
+                <p>A IS A PRIME</p>
+                <div id="serverStatus" style="font-size: 12px; margin-top: 10px;">🔄 Connecting...</div>
             </div>
             
-            <div class="login-form">
-                <div class="input-group">
-                    <input type="text" id="username" required>
-                    <label>Username</label>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="password" required>
-                    <label>Password</label>
-                </div>
-                <button class="btn" onclick="login()" id="loginBtn">ENTER THE UNKNOWN</button>
-                <div id="loginError" class="error-message" style="color: #ff00ff; text-align: center;"></div>
-            </div>
-        </div>
-
-        <!-- Loading Page -->
-        <div id="loadingPage" class="game-section">
-            <div class="logo-container">
-                <div class="intricate-logo">A&B</div>
+            <div class="input-field">
+                <label>USERNAME</label>
+                <input type="text" id="username" placeholder="Enter username">
             </div>
             
-            <div class="circular-loader">
-                <div class="loader-circle"></div>
-                <div class="loader-progress" id="loaderProgress">0%</div>
-            </div>
-            <p id="loaderText" style="text-align: center; color: #00ffff;">Initializing...</p>
-        </div>
-
-        <!-- Introduction Page -->
-        <div id="introPage" class="game-section">
-            <div class="clue-container">
-                <h2 class="clue-title">🧠 THE MIND GAME</h2>
-                <div class="story-text" style="font-size: 1.2rem; text-align: center;">
-                    <p style="margin-bottom: 20px;">This is not just a game...</p>
-                    <p>It's a journey into the depths of your consciousness.</p>
-                    <p style="color: #00ffff; margin: 20px 0;">"The truth to most of your unanswered questions lies within."</p>
-                    <p>Every choice you make, every path you take,</p>
-                    <p>will reveal a piece of the puzzle you've been seeking.</p>
-                </div>
-                
-                <div style="text-align: center; margin-top: 30px;">
-                    <p style="margin-bottom: 20px; color: #ff00ff;">Do you wish to continue?</p>
-                    <button class="btn" onclick="startFirstClue()" style="margin-right: 20px; padding: 15px 40px;">YES</button>
-                    <button class="btn" onclick="restartGame()" style="background: transparent; border: 2px solid #ff00ff;">NO</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Game Content -->
-        <div id="gamePage" class="game-section">
-            <div class="logo-container">
-                <div class="intricate-logo" style="font-size: 4rem;">TALES</div>
+            <div class="input-field">
+                <label>PASSWORD</label>
+                <input type="password" id="password" placeholder="Enter password">
             </div>
             
-            <!-- Clue 1 -->
-            <div id="clue1" class="clue-container">
-                <h2 class="clue-title">🔍 FIRST CLUE</h2>
-                <p style="margin-bottom: 20px;">If a guy [James] is to call you late at night and your mum picks the phone instead & asks "yes James where do you come from"</p>
-                <p><strong>What will be James' answer?</strong></p>
-                
-                <div class="options">
-                    <button class="option-btn" onclick="checkAnswer1('A')" id="optA">A. Kireka</button>
-                    <button class="option-btn" onclick="checkAnswer1('B')" id="optB">B. Mukono</button>
-                    <button class="option-btn" onclick="checkAnswer1('C')" id="optC">C. Nansana</button>
-                    <button class="option-btn" onclick="checkAnswer1('D')" id="optD">D. Kyengera</button>
+            <button class="login-btn" onclick="login()">ENTER THE REALM</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <span style="color: var(--text-muted);">Admin: admin / 256@</span>
+            </div>
+            <div id="loginError" style="color: var(--error); text-align: center; margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <!-- Game HUD -->
+    <div id="gameHUD" class="game-hud">
+        <div class="top-bar">
+            <div class="game-title">THE TALES</div>
+            <div class="player-stats">
+                <div class="stat-item">
+                    <span>⚔️</span>
+                    <span id="hudLevel">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>💎</span>
+                    <span id="hudGems">100</span>
                 </div>
             </div>
-
-            <!-- Clue 2 -->
-            <div id="clue2" style="display: none;" class="clue-container">
-                <h2 class="clue-title">🔍 SECOND CLUE</h2>
-                <p style="margin-bottom: 20px;">From the first clue you must now be in position to know who James is</p>
-                <p><strong>Having overheard James on a phone call with your mum, who is James to you now?</strong></p>
-                
-                <div class="options">
-                    <button class="option-btn" onclick="checkAnswer2('A')">A. Znob</button>
-                    <button class="option-btn" onclick="checkAnswer2('B')">B. 😣</button>
-                    <button class="option-btn" onclick="checkAnswer2('C')">C. Ask a QN instead</button>
-                    <button class="option-btn" onclick="checkAnswer2('D')">D. Still don't know</button>
-                </div>
-
-                <div id="customQuestion" class="hidden-input" style="display: none;">
-                    <h3 style="color: #ff00ff; margin-bottom: 15px;">Ask Your Question:</h3>
-                    <input type="text" id="customQuestionInput" class="question-input" placeholder="Type your question here...">
-                    <input type="text" id="customAnswerInput" class="question-input" placeholder="Your expected answer...">
-                    <button class="btn" onclick="askCustomQuestion()" style="padding: 12px;">ASK THE HOST</button>
-                </div>
-
-                <div id="decodeSection" class="hidden-input" style="display: none;">
-                    <h3 style="color: #00ffff; margin-bottom: 15px;">Decode the message:</h3>
-                    <input type="text" id="decodeInput" class="question-input" placeholder="Enter decoded word...">
-                    <button class="btn" onclick="decodeAnswer()" style="padding: 12px;">SUBMIT</button>
-                </div>
-
-                <!-- Typing Indicator -->
-                <div id="typingIndicator" class="typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <span style="margin-left: 10px; color: #00ffff;">Host is typing...</span>
-                </div>
-
-                <!-- Host Response Container -->
-                <div id="hostResponse" class="host-response" style="display: none;"></div>
+            <div class="menu-btn" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
+        </div>
 
-            <!-- Clue 3 - The Piece of Truth -->
-            <div id="clue3" style="display: none;" class="clue-container">
-                <h2 class="clue-title">📜 THE PIECE OF TRUTH</h2>
-                <div class="story-text">
-                    <p>In the world of espionage, -oo7 (aka 007) and A' (aka Via) were an unstoppable couple. Their love was the stuff of legends, with -oo7 smiling only for A'. But as time went by, gaps crept in, and the distance between them grew. Despite -oo7's unwavering love, the pressures of their secret lives took a toll.</p>
-                    
-                    <p>The truth that emerged from the shadows was that some love stories aren't meant to last forever. They become legends, whispered in the corridors of time, reminding us that even the strongest bonds can be tested by the weight of secrets and the price of duty.</p>
-                    
-                    <p>A' and -oo7's tale teaches us that sometimes, the greatest truth is that love and loss are two sides of the same coin. In the end, what remains is not the pain of separation, but the beauty of having loved deeply in a world that rarely allows it.</p>
-                    
-                    <p style="color: #00ffff; text-align: center; margin-top: 20px;">"In every ending lies a new beginning."</p>
-                </div>
-
-                <!-- Question Section -->
-                <div class="question-section">
-                    <h3 style="color: #ff00ff; margin-bottom: 20px;">ASK YOUR OWN QUESTIONS</h3>
-                    <input type="text" id="guestQuestion" class="question-input" placeholder="What would you like to know?">
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="ask-btn" onclick="askHostQuestion()" id="askHostBtn">ASK THE HOST</button>
-                        <button class="ask-btn" onclick="restartGame()" style="border-color: #ff00ff; color: #ff00ff;">PLAY AGAIN</button>
+        <!-- Simple Menu (Replace Radial) -->
+        <div id="simpleMenu" class="feature-page" style="transform: translateX(-100%);">
+            <div class="feature-header">
+                <div class="back-btn" onclick="toggleMenu()">←</div>
+                <div class="feature-title">MENU</div>
+            </div>
+            <div class="feature-content">
+                <div class="content-card" onclick="openFeature('profile')">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">👤</span>
+                        <div>
+                            <div style="color: var(--gold);">PROFILE</div>
+                            <div style="font-size: 12px;">Your stats</div>
+                        </div>
                     </div>
-                    
-                    <!-- Typing Indicator for Clue 3 -->
-                    <div id="typingIndicator3" class="typing-indicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <span style="margin-left: 10px; color: #00ffff;">Host is typing...</span>
+                </div>
+                <div class="content-card" onclick="openFeature('chat')">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">💬</span>
+                        <div>
+                            <div style="color: var(--gold);">CHAT</div>
+                            <div style="font-size: 12px;">Talk to others</div>
+                        </div>
                     </div>
-                    
-                    <div id="hostAnswer" class="host-response" style="display: none; margin-top: 20px;"></div>
+                </div>
+                <div class="content-card" onclick="openFeature('levels')">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">⚔️</span>
+                        <div>
+                            <div style="color: var(--gold);">LEVELS</div>
+                            <div style="font-size: 12px;">All adventures</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-card" onclick="openFeature('inventory')">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">🎁</span>
+                        <div>
+                            <div style="color: var(--gold);">INVENTORY</div>
+                            <div style="font-size: 12px;">Your items</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-card" onclick="openFeature('admin')">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">⚙️</span>
+                        <div>
+                            <div style="color: var(--gold);">ADMIN</div>
+                            <div style="font-size: 12px;">Manage levels</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas -->
+        <div class="game-canvas" id="gameCanvas">
+            <div id="introCard" class="content-card">
+                <div class="card-header">
+                    <div class="card-icon">📜</div>
+                    <div class="card-title">THE MIND GAME</div>
+                </div>
+                <p style="color: var(--text-muted); line-height: 1.6;">
+                    Welcome, brave adventurer. This is not merely a game - it's a journey into the depths of your consciousness.
+                </p>
+                <div style="text-align: center; color: var(--gold); margin: 20px 0;">
+                    "A IS A PRIME"
+                </div>
+                <button class="login-btn" onclick="startGame()">BEGIN JOURNEY</button>
+            </div>
+
+            <div id="levelCard" class="content-card hidden"></div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="action-btn" onclick="openFeature('levels')">
+                <span class="action-icon">⚔️</span>
+                <span class="action-label">LEVELS</span>
+            </div>
+            <div class="action-btn" onclick="openFeature('chat')">
+                <span class="action-icon">💬</span>
+                <span class="action-label">CHAT</span>
+            </div>
+            <div class="action-btn" onclick="showRestartDialog()">
+                <span class="action-icon">🔄</span>
+                <span class="action-label">RESTART</span>
+            </div>
+            <div class="action-btn" onclick="openFeature('inventory')">
+                <span class="action-icon">🎁</span>
+                <span class="action-label">ITEMS</span>
+            </div>
+            <div class="action-btn" onclick="openFeature('profile')">
+                <span class="action-icon">👤</span>
+                <span class="action-label">PROFILE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Pages -->
+    <div id="profilePage" class="feature-page">
+        <div class="feature-header">
+            <div class="back-btn" onclick="closeFeature('profile')">←</div>
+            <div class="feature-title">PROFILE</div>
+        </div>
+        <div class="feature-content">
+            <div class="content-card">
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: var(--gold); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px;" id="profileAvatar">J</div>
+                    <h2 id="profileName">Jovia</h2>
+                    <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 20px;">
+                        <div class="stat-item" style="flex-direction: column;">
+                            <span style="color: var(--gold); font-size: 24px;" id="profileLevel">1</span>
+                            <span>LEVEL</span>
+                        </div>
+                        <div class="stat-item" style="flex-direction: column;">
+                            <span style="color: var(--gold); font-size: 24px;" id="profileGems">100</span>
+                            <span>GEMS</span>
+                        </div>
+                        <div class="stat-item" style="flex-direction: column;">
+                            <span style="color: var(--gold); font-size: 24px;" id="profileScore">0</span>
+                            <span>SCORE</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Gift Popup Container -->
-    <div id="giftPopup" style="display: none;"></div>
+    <div id="chatPage" class="feature-page">
+        <div class="feature-header">
+            <div class="back-btn" onclick="closeFeature('chat')">←</div>
+            <div class="feature-title">CHAT</div>
+        </div>
+        <div class="feature-content">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type message...">
+                    <button onclick="sendMessage()">SEND</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="levelsPage" class="feature-page">
+        <div class="feature-header">
+            <div class="back-btn" onclick="closeFeature('levels')">←</div>
+            <div class="feature-title">LEVELS</div>
+        </div>
+        <div class="feature-content">
+            <div class="level-grid" id="levelGrid"></div>
+        </div>
+    </div>
+
+    <div id="inventoryPage" class="feature-page">
+        <div class="feature-header">
+            <div class="back-btn" onclick="closeFeature('inventory')">←</div>
+            <div class="feature-title">INVENTORY</div>
+        </div>
+        <div class="feature-content">
+            <div class="options-grid" id="inventoryGrid"></div>
+        </div>
+    </div>
+
+    <div id="adminPage" class="feature-page">
+        <div class="feature-header">
+            <div class="back-btn" onclick="closeFeature('admin')">←</div>
+            <div class="feature-title">ADMIN</div>
+        </div>
+        <div class="feature-content">
+            <div class="content-card">
+                <div id="adminLogin">
+                    <h3 style="color: var(--gold); margin-bottom: 15px;">ADMIN ACCESS</h3>
+                    <input type="password" id="adminCode" class="input-field" style="width:100%; margin-bottom:15px;" placeholder="Enter passcode">
+                    <button class="login-btn" onclick="verifyAdmin()">ACCESS</button>
+                </div>
+                <div id="adminControls" class="hidden">
+                    <h3 style="color: var(--gold); margin-bottom: 15px;">CREATE LEVEL</h3>
+                    <input type="text" id="levelTitle" class="input-field" style="width:100%; margin-bottom:10px;" placeholder="Title">
+                    <textarea id="levelDesc" class="input-field" style="width:100%; margin-bottom:10px;" placeholder="Description"></textarea>
+                    <input type="text" id="optA" class="input-field" style="width:100%; margin-bottom:5px;" placeholder="Option A">
+                    <input type="text" id="optB" class="input-field" style="width:100%; margin-bottom:5px;" placeholder="Option B">
+                    <input type="text" id="optC" class="input-field" style="width:100%; margin-bottom:5px;" placeholder="Option C">
+                    <input type="text" id="optD" class="input-field" style="width:100%; margin-bottom:5px;" placeholder="Option D">
+                    <select id="correctOpt" class="input-field" style="width:100%; margin-bottom:15px;">
+                        <option value="A">A is correct</option>
+                        <option value="B">B is correct</option>
+                        <option value="C">C is correct</option>
+                        <option value="D">D is correct</option>
+                    </select>
+                    <button class="login-btn" onclick="addLevel()">ADD LEVEL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restart Dialog -->
+    <div id="restartDialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: var(--panel); border: 3px solid var(--gold); border-radius: 20px; padding: 30px; z-index: 10001; transition: 0.3s;">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">New Journey?</h3>
+        <p style="margin-bottom: 20px;">Start over from level 1?</p>
+        <div style="display: flex; gap: 15px;">
+            <button class="login-btn" style="background: var(--surface);" onclick="closeDialog()">CANCEL</button>
+            <button class="login-btn" onclick="restartGame()">CONFIRM</button>
+        </div>
+    </div>
 
     <script>
-        // ===== YOUR RAILWAY URL IS NOW CONFIGURED =====
-        const BACKEND_URL = 'https://tales-production-f648.up.railway.app';
-        const SOCKET_URL = 'https://tales-production-f648.up.railway.app';
+        // ===== CONFIG =====
+        const BACKEND_URL = 'https://your-backend-url.railway.app'; // Replace with your Railway URL
+        const SOCKET_URL = BACKEND_URL;
         
-        // Socket.IO connection
-        let socket;
-        let sessionId = localStorage.getItem('sessionId') || 'session_' + Date.now();
-        let connected = false;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        
-        // Initialize Socket connection
-        function initSocket() {
-            console.log('Connecting to:', SOCKET_URL);
-            
+        // ===== STATE =====
+        let socket = null;
+        let currentUser = null;
+        let gameLevels = [];
+        let currentLevel = 1;
+        let selectedAnswer = null;
+        let completedLevels = [];
+
+        // ===== LOADING =====
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 500);
+        }, 2000);
+
+        // ===== SOCKET CONNECTION =====
+        function connectSocket() {
             socket = io(SOCKET_URL, {
-                transports: ['websocket', 'polling'],
-                reconnection: true,
-                reconnectionAttempts: maxReconnectAttempts,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                timeout: 20000
+                transports: ['websocket'],
+                reconnection: true
             });
-            
+
             socket.on('connect', () => {
                 console.log('✅ Connected to server');
-                updateConnectionStatus(true);
-                reconnectAttempts = 0;
-                socket.emit('join-game', sessionId);
-                showPopup('✨ Connected to the host');
-            });
-            
-            socket.on('disconnect', (reason) => {
-                console.log('❌ Disconnected from server:', reason);
-                updateConnectionStatus(false);
-                
-                if (reason === 'io server disconnect') {
-                    // Server disconnected, try to reconnect
-                    socket.connect();
+                document.getElementById('serverStatus').innerHTML = '🟢 Online';
+                if (currentUser) {
+                    socket.emit('join-chat', currentUser.username);
                 }
             });
-            
-            socket.on('connect_error', (error) => {
-                console.log('Connection error:', error);
-                reconnectAttempts++;
-                updateConnectionStatus(false);
-                
-                if (reconnectAttempts >= maxReconnectAttempts) {
-                    showPopup('⚠️ Cannot connect to host. Playing offline mode.');
-                }
+
+            socket.on('disconnect', () => {
+                console.log('❌ Disconnected');
+                document.getElementById('serverStatus').innerHTML = '🔴 Offline';
             });
-            
-            socket.on('host-message', (data) => {
-                showHostMessage(data.message);
+
+            socket.on('new-message', (data) => {
+                addChatMessage(data.username, data.message, data.type);
             });
-            
-            socket.on('host-response', (data) => {
-                document.getElementById('typingIndicator').classList.remove('active');
-                document.getElementById('typingIndicator3').classList.remove('active');
-                displayHostResponse(data.response);
-            });
-            
-            socket.on('host-typing', (data) => {
-                if (data.typing) {
-                    document.getElementById('typingIndicator').classList.add('active');
-                    document.getElementById('typingIndicator3').classList.add('active');
-                } else {
-                    document.getElementById('typingIndicator').classList.remove('active');
-                    document.getElementById('typingIndicator3').classList.remove('active');
-                }
-            });
-            
-            socket.on('clue-result', (data) => {
-                if (data.correct) {
-                    handleCorrectClue(data.clueId);
-                }
-                showPopup(data.response);
-            });
-            
-            socket.on('receive-gift', (data) => {
-                showGift(data.gift, data.message);
+
+            socket.on('level-added', (level) => {
+                gameLevels.push(level);
+                loadLevels();
+                showToast('New Level Added!', `Level ${level.levelId} is now available`, '📜');
             });
         }
-        
-        function updateConnectionStatus(isConnected) {
-            const statusDiv = document.getElementById('connectionStatus');
-            const statusText = document.getElementById('statusText');
-            
-            if (isConnected) {
-                statusDiv.className = 'connection-status connected';
-                statusText.innerText = 'Host Connected';
-                connected = true;
-            } else {
-                statusDiv.className = 'connection-status disconnected';
-                statusText.innerText = 'Host Disconnected';
-                connected = false;
-            }
-        }
-        
-        function showHostMessage(message) {
-            showPopup(message);
-        }
-        
-        function displayHostResponse(response) {
-            const responseDiv = document.getElementById('hostResponse');
-            const answerDiv = document.getElementById('hostAnswer');
-            
-            if (document.getElementById('clue2').style.display === 'block') {
-                responseDiv.style.display = 'block';
-                responseDiv.innerHTML = `<strong>Host:</strong> "${response}"`;
-            } else {
-                answerDiv.style.display = 'block';
-                answerDiv.innerHTML = `<strong>Host:</strong> "${response}"`;
-            }
-        }
-        
-        // Game state
-        let currentClue = 1;
-        let giftCount = 0;
-        const gifts = ['🎁', '🎉', '🏆', '💎', '🔮', '⭐', '🌙', '⚡', '🕯️', '🗝️'];
-        
-        // Initialize socket on page load
-        window.onload = function() {
-            initSocket();
-        };
-        
-        function login() {
+
+        // ===== LOGIN =====
+        async function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            if (username === 'jovia' && password === 'jovia256') {
-                document.getElementById('loginPage').classList.remove('active');
-                document.getElementById('loadingPage').classList.add('active');
-                
-                showPopup('Welcome Jovia to the game!');
-                
-                // Circular loading animation
-                let progress = 0;
-                const loadingInterval = setInterval(() => {
-                    progress += 1;
-                    document.getElementById('loaderProgress').innerText = progress + '%';
-                    document.getElementById('loaderText').innerText = progress < 30 ? 'Initializing...' : 
-                                                                    progress < 60 ? 'Loading truths...' : 
-                                                                    progress < 90 ? 'Almost there...' : 'Ready';
-                    
-                    if (progress >= 100) {
-                        clearInterval(loadingInterval);
-                        setTimeout(() => {
-                            document.getElementById('loadingPage').classList.remove('active');
-                            document.getElementById('introPage').classList.add('active');
-                        }, 500);
-                    }
-                }, 30);
-            } else {
-                document.getElementById('loginError').innerText = 'Access Denied. Invalid credentials.';
+
+            if (!username || !password) {
+                showToast('Error', 'Enter username and password', '⚠️');
+                return;
             }
-        }
-        
-        function showPopup(message) {
-            const popup = document.createElement('div');
-            popup.className = 'popup';
-            popup.innerText = message;
-            document.body.appendChild(popup);
-            
-            setTimeout(() => {
-                popup.remove();
-            }, 3000);
-        }
-        
-        function showGift(gift, message) {
-            giftCount++;
-            const giftDiv = document.createElement('div');
-            giftDiv.className = 'gift-popup';
-            giftDiv.innerHTML = `
-                <span class="gift-close" onclick="this.parentElement.remove()">×</span>
-                <div class="gift-icon">${gift || gifts[giftCount % gifts.length]}</div>
-                <div class="gift-text">${message || 'You\'ve earned a gift!'}</div>
-            `;
-            document.body.appendChild(giftDiv);
-            
-            setTimeout(() => {
-                if (giftDiv.parentElement) {
-                    giftDiv.remove();
-                }
-            }, 4000);
-        }
-        
-        function startFirstClue() {
-            document.getElementById('introPage').classList.remove('active');
-            document.getElementById('gamePage').classList.add('active');
-            document.getElementById('clue1').style.display = 'block';
-        }
-        
-        function checkAnswer1(answer) {
-            if (answer === 'D') {
-                handleCorrectClue(1);
-                showGift('🎁', 'First clue completed!');
-                showPopup('✨ Correct! You found the first truth!');
-            } else {
-                showPopup('❌ Not quite. Listen to the question carefully...');
-            }
-        }
-        
-        function handleCorrectClue(clueId) {
-            if (clueId === 1) {
-                document.getElementById('clue1').style.display = 'none';
-                document.getElementById('clue2').style.display = 'block';
-            }
-        }
-        
-        function checkAnswer2(answer) {
-            if (answer === 'C') {
-                document.getElementById('customQuestion').style.display = 'block';
-                document.getElementById('decodeSection').style.display = 'none';
-            } else if (answer === 'A') {
-                document.getElementById('customQuestion').style.display = 'none';
-                document.getElementById('decodeSection').style.display = 'block';
-            } else {
-                showPopup('Try a different approach...');
-            }
-        }
-        
-        function askCustomQuestion() {
-            const question = document.getElementById('customQuestionInput').value;
-            const expectedAnswer = document.getElementById('customAnswerInput').value.toLowerCase();
-            
-            if (question && expectedAnswer) {
-                if (connected) {
-                    socket.emit('ask-question', {
-                        question: question,
-                        sessionId: sessionId
-                    });
-                } else {
-                    // Offline mode response
-                    displayHostResponse("Interesting question! The truth about James lies in decoding 'Znob'. Try reversing it...");
-                }
-                
-                // Check if answer contains bonz
-                if (expectedAnswer.includes('bonz')) {
-                    setTimeout(() => {
-                        showGift('🔮', 'You decoded the truth!');
-                        document.getElementById('clue2').style.display = 'none';
-                        document.getElementById('clue3').style.display = 'block';
-                    }, 3000);
-                }
-            }
-        }
-        
-        function decodeAnswer() {
-            const decodeInput = document.getElementById('decodeInput').value.toLowerCase();
-            
-            if (connected) {
-                socket.emit('submit-clue-answer', {
-                    clueId: 2,
-                    answer: decodeInput,
-                    sessionId: sessionId
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
-            }
-            
-            if (decodeInput === 'bonz') {
-                setTimeout(() => {
-                    showGift('🗝️', 'Code cracked!');
-                    document.getElementById('clue2').style.display = 'none';
-                    document.getElementById('clue3').style.display = 'block';
-                }, 1000);
-            } else {
-                showPopup('❌ Try reversing the word...');
-            }
-        }
-        
-        function askHostQuestion() {
-            const question = document.getElementById('guestQuestion').value;
-            
-            if (question) {
-                document.getElementById('askHostBtn').disabled = true;
-                
-                if (connected) {
-                    socket.emit('ask-question', {
-                        question: question,
-                        sessionId: sessionId
-                    });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = data.user;
+                    
+                    document.getElementById('profileName').innerText = currentUser.username;
+                    document.getElementById('profileAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
+                    
+                    updateStats();
+                    
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('gameHUD').classList.add('visible');
+                    
+                    connectSocket();
+                    loadLevelsFromServer();
+                    
+                    showToast('Welcome!', `Hello, ${currentUser.username}!`, '🏰');
                 } else {
-                    // Offline mode responses
-                    const offlineResponses = [
-                        "The truth is, some stories are meant to remain mysteries.",
-                        "In the shadows of espionage, love was both their strength and weakness.",
-                        "A' and -oo7's tale reminds us that even legends have endings.",
-                        "Perhaps the real question is not what happened, but what you believe happened."
-                    ];
-                    const randomResponse = offlineResponses[Math.floor(Math.random() * offlineResponses.length)];
-                    displayHostResponse(randomResponse);
+                    document.getElementById('loginError').innerText = data.error || 'Login failed';
                 }
-                
-                setTimeout(() => {
-                    document.getElementById('askHostBtn').disabled = false;
-                }, 3000);
+            } catch (error) {
+                showToast('Connection Error', 'Cannot reach server', '⚠️');
             }
         }
-        
+
+        // ===== LOAD LEVELS =====
+        async function loadLevelsFromServer() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/levels`);
+                gameLevels = await response.json();
+                loadLevels();
+            } catch (error) {
+                console.error('Failed to load levels');
+            }
+        }
+
+        function loadLevels() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= 25; i++) {
+                const level = gameLevels.find(l => l.levelId === i);
+                const isUnlocked = level ? level.unlocked : false;
+                const isCompleted = currentUser?.completedLevels?.includes(i);
+
+                const node = document.createElement('div');
+                node.className = `level-node ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}`;
+                node.onclick = () => {
+                    if (isUnlocked && !isCompleted) {
+                        loadLevel(i);
+                        closeFeature('levels');
+                    }
+                };
+
+                node.innerHTML = `
+                    <div style="font-size: 20px;">${i}</div>
+                    <div>${isCompleted ? '🏆' : isUnlocked ? '⚔️' : '🔒'}</div>
+                `;
+                grid.appendChild(node);
+            }
+        }
+
+        function loadLevel(levelId) {
+            const level = gameLevels.find(l => l.levelId === levelId);
+            if (!level) return;
+
+            currentLevel = levelId;
+            selectedAnswer = null;
+
+            document.getElementById('introCard').classList.add('hidden');
+            const levelCard = document.getElementById('levelCard');
+            levelCard.classList.remove('hidden');
+
+            levelCard.innerHTML = `
+                <div class="card-header">
+                    <div class="card-icon">⚔️</div>
+                    <div class="card-title">LEVEL ${level.levelId}</div>
+                </div>
+                <p>${level.title}</p>
+                <p style="color: var(--text-muted); margin: 15px 0;">${level.description}</p>
+                <div class="options-grid">
+                    <div class="option-tile" onclick="selectOption('A')" id="optA">A. ${level.options[0]}</div>
+                    <div class="option-tile" onclick="selectOption('B')" id="optB">B. ${level.options[1]}</div>
+                    <div class="option-tile" onclick="selectOption('C')" id="optC">C. ${level.options[2]}</div>
+                    <div class="option-tile" onclick="selectOption('D')" id="optD">D. ${level.options[3]}</div>
+                </div>
+                <button class="login-btn" onclick="submitLevel()">SUBMIT</button>
+            `;
+        }
+
+        function selectOption(opt) {
+            selectedAnswer = opt;
+            document.querySelectorAll('.option-tile').forEach(el => el.classList.remove('selected'));
+            document.getElementById('opt' + opt)?.classList.add('selected');
+        }
+
+        async function submitLevel() {
+            if (!selectedAnswer) {
+                showToast('Error', 'Select an answer', '⚠️');
+                return;
+            }
+
+            const level = gameLevels.find(l => l.levelId === currentLevel);
+            if (!level) return;
+
+            if (selectedAnswer === level.correct) {
+                const response = await fetch(`${BACKEND_URL}/api/progress`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: currentUser.username,
+                        levelId: currentLevel,
+                        completed: true,
+                        score: 100,
+                        gems: 20
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentUser.level = data.level;
+                    currentUser.gems = data.gems;
+                    currentUser.score = data.score;
+                    currentUser.completedLevels = data.completedLevels;
+                    
+                    updateStats();
+                    showToast('Victory!', 'Level completed!', '🏆');
+                    
+                    setTimeout(() => {
+                        if (currentLevel < 25) {
+                            loadLevel(currentLevel + 1);
+                        } else {
+                            document.getElementById('levelCard').classList.add('hidden');
+                            document.getElementById('introCard').classList.remove('hidden');
+                        }
+                    }, 2000);
+                }
+            } else {
+                showToast('Wrong', 'Try again', '🤔');
+            }
+        }
+
+        // ===== CHAT =====
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message && socket && currentUser) {
+                socket.emit('send-message', {
+                    username: currentUser.username,
+                    message: message
+                });
+                input.value = '';
+            }
+        }
+
+        function addChatMessage(username, message, type) {
+            const chatDiv = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${username === currentUser?.username ? 'player' : 'host'}`;
+            
+            msgDiv.innerHTML = `
+                <div class="message-bubble">
+                    <div style="font-size: 11px; color: var(--gold);">${username}</div>
+                    <div>${message}</div>
+                </div>
+            `;
+            chatDiv.appendChild(msgDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // ===== ADMIN =====
+        function verifyAdmin() {
+            const code = document.getElementById('adminCode').value;
+            if (code === '256@') {
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminControls').classList.remove('hidden');
+                showToast('Access Granted', 'Welcome to Admin Panel', '⚙️');
+            } else {
+                showToast('Access Denied', 'Invalid code', '🔒');
+            }
+        }
+
+        async function addLevel() {
+            const title = document.getElementById('levelTitle').value;
+            const desc = document.getElementById('levelDesc').value;
+            const optA = document.getElementById('optA').value;
+            const optB = document.getElementById('optB').value;
+            const optC = document.getElementById('optC').value;
+            const optD = document.getElementById('optD').value;
+            const correct = document.getElementById('correctOpt').value;
+
+            if (!title || !desc || !optA || !optB || !optC || !optD) {
+                showToast('Error', 'Fill all fields', '⚠️');
+                return;
+            }
+
+            const newLevel = {
+                levelId: gameLevels.length + 1,
+                title,
+                description: desc,
+                options: [optA, optB, optC, optD],
+                correct
+            };
+
+            const response = await fetch(`${BACKEND_URL}/api/levels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLevel)
+            });
+
+            if (response.ok) {
+                showToast('Success', 'Level added!', '📜');
+                document.getElementById('levelTitle').value = '';
+                document.getElementById('levelDesc').value = '';
+                document.getElementById('optA').value = '';
+                document.getElementById('optB').value = '';
+                document.getElementById('optC').value = '';
+                document.getElementById('optD').value = '';
+            }
+        }
+
+        // ===== UI FUNCTIONS =====
+        function toggleMenu() {
+            document.getElementById('simpleMenu').classList.toggle('active');
+        }
+
+        function openFeature(feature) {
+            document.getElementById(feature + 'Page').classList.add('active');
+            toggleMenu();
+        }
+
+        function closeFeature(feature) {
+            document.getElementById(feature + 'Page').classList.remove('active');
+        }
+
+        function showRestartDialog() {
+            document.getElementById('restartDialog').style.transform = 'translate(-50%, -50%) scale(1)';
+        }
+
+        function closeDialog() {
+            document.getElementById('restartDialog').style.transform = 'translate(-50%, -50%) scale(0)';
+        }
+
         function restartGame() {
-            // Reset everything
-            document.getElementById('gamePage').classList.remove('active');
-            document.getElementById('introPage').classList.remove('active');
-            document.getElementById('loadingPage').classList.remove('active');
-            document.getElementById('loginPage').classList.add('active');
+            closeDialog();
+            currentLevel = 1;
+            selectedAnswer = null;
             
-            // Reset forms
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('loginError').innerText = '';
+            document.getElementById('introCard').classList.remove('hidden');
+            document.getElementById('levelCard').classList.add('hidden');
             
-            // Reset clues
-            document.getElementById('clue1').style.display = 'block';
-            document.getElementById('clue2').style.display = 'none';
-            document.getElementById('clue3').style.display = 'none';
-            document.getElementById('customQuestion').style.display = 'none';
-            document.getElementById('decodeSection').style.display = 'none';
-            document.getElementById('hostResponse').style.display = 'none';
-            document.getElementById('hostAnswer').style.display = 'none';
-            document.getElementById('guestQuestion').value = '';
-            
-            currentClue = 1;
-            giftCount = 0;
-            
-            // Generate new session
-            sessionId = 'session_' + Date.now();
-            localStorage.setItem('sessionId', sessionId);
-            if (connected) {
-                socket.emit('join-game', sessionId);
-            }
+            showToast('New Journey', 'Starting over', '🗺️');
         }
+
+        function showToast(title, message, icon) {
+            const toast = document.createElement('div');
+            toast.className = 'game-toast';
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                    <span style="font-size: 20px;">${icon}</span>
+                    <span style="color: var(--gold);">${title}</span>
+                </div>
+                <div>${message}</div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateStats() {
+            document.getElementById('hudLevel').innerText = currentUser?.level || 1;
+            document.getElementById('hudGems').innerText = currentUser?.gems || 100;
+            document.getElementById('profileLevel').innerText = currentUser?.level || 1;
+            document.getElementById('profileGems').innerText = currentUser?.gems || 100;
+            document.getElementById('profileScore').innerText = currentUser?.score || 0;
+        }
+
+        function startGame() {
+            loadLevel(1);
+        }
+
+        // Load inventory
+        function loadInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            grid.innerHTML = '';
+            const items = [
+                { icon: '🎁', name: 'Mystery Box', qty: 2 },
+                { icon: '🗝️', name: 'Golden Key', qty: 1 }
+            ];
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'option-tile';
+                div.innerHTML = `
+                    <div style="font-size: 40px;">${item.icon}</div>
+                    <div>${item.name}</div>
+                    <div>x${item.qty}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+        loadInventory();
     </script>
 </body>
 </html>
