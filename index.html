@@ -615,37 +615,56 @@
     <div id="giftPopup" style="display: none;"></div>
 
     <script>
-        // Configuration
-        const BACKEND_URL = 'https://your-backend-url.railway.app'; // Replace with your Railway URL
-        const SOCKET_URL = 'https://your-backend-url.railway.app'; // Same as backend URL
+        // ===== YOUR RAILWAY URL IS NOW CONFIGURED =====
+        const BACKEND_URL = 'https://tales-production-f648.up.railway.app';
+        const SOCKET_URL = 'https://tales-production-f648.up.railway.app';
         
         // Socket.IO connection
         let socket;
         let sessionId = localStorage.getItem('sessionId') || 'session_' + Date.now();
         let connected = false;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
         
         // Initialize Socket connection
         function initSocket() {
+            console.log('Connecting to:', SOCKET_URL);
+            
             socket = io(SOCKET_URL, {
-                transports: ['websocket'],
+                transports: ['websocket', 'polling'],
                 reconnection: true,
-                reconnectionAttempts: 5
+                reconnectionAttempts: maxReconnectAttempts,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                timeout: 20000
             });
             
             socket.on('connect', () => {
-                console.log('Connected to server');
+                console.log('✅ Connected to server');
                 updateConnectionStatus(true);
+                reconnectAttempts = 0;
                 socket.emit('join-game', sessionId);
+                showPopup('✨ Connected to the host');
             });
             
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server');
+            socket.on('disconnect', (reason) => {
+                console.log('❌ Disconnected from server:', reason);
                 updateConnectionStatus(false);
+                
+                if (reason === 'io server disconnect') {
+                    // Server disconnected, try to reconnect
+                    socket.connect();
+                }
             });
             
             socket.on('connect_error', (error) => {
                 console.log('Connection error:', error);
+                reconnectAttempts++;
                 updateConnectionStatus(false);
+                
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    showPopup('⚠️ Cannot connect to host. Playing offline mode.');
+                }
             });
             
             socket.on('host-message', (data) => {
@@ -790,53 +809,23 @@
         }
         
         function checkAnswer1(answer) {
-            if (!connected) {
-                showPopup('Waiting for host connection...');
-                return;
-            }
-            
-            // Disable buttons to prevent double submission
-            disableClue1Buttons(true);
-            
-            socket.emit('submit-clue-answer', {
-                clueId: 1,
-                answer: answer,
-                sessionId: sessionId
-            });
-            
             if (answer === 'D') {
-                setTimeout(() => {
-                    handleCorrectClue(1);
-                }, 1000);
+                handleCorrectClue(1);
+                showGift('🎁', 'First clue completed!');
+                showPopup('✨ Correct! You found the first truth!');
             } else {
                 showPopup('❌ Not quite. Listen to the question carefully...');
-                disableClue1Buttons(false);
             }
-        }
-        
-        function disableClue1Buttons(disabled) {
-            document.getElementById('optA').disabled = disabled;
-            document.getElementById('optB').disabled = disabled;
-            document.getElementById('optC').disabled = disabled;
-            document.getElementById('optD').disabled = disabled;
         }
         
         function handleCorrectClue(clueId) {
             if (clueId === 1) {
                 document.getElementById('clue1').style.display = 'none';
                 document.getElementById('clue2').style.display = 'block';
-                showGift('🎁', 'First clue completed!');
-                showPopup('✨ Correct! You found the first truth!');
-                disableClue1Buttons(false);
             }
         }
         
         function checkAnswer2(answer) {
-            if (!connected) {
-                showPopup('Waiting for host connection...');
-                return;
-            }
-            
             if (answer === 'C') {
                 document.getElementById('customQuestion').style.display = 'block';
                 document.getElementById('decodeSection').style.display = 'none';
@@ -849,19 +838,19 @@
         }
         
         function askCustomQuestion() {
-            if (!connected) {
-                showPopup('Waiting for host connection...');
-                return;
-            }
-            
             const question = document.getElementById('customQuestionInput').value;
             const expectedAnswer = document.getElementById('customAnswerInput').value.toLowerCase();
             
             if (question && expectedAnswer) {
-                socket.emit('ask-question', {
-                    question: question,
-                    sessionId: sessionId
-                });
+                if (connected) {
+                    socket.emit('ask-question', {
+                        question: question,
+                        sessionId: sessionId
+                    });
+                } else {
+                    // Offline mode response
+                    displayHostResponse("Interesting question! The truth about James lies in decoding 'Znob'. Try reversing it...");
+                }
                 
                 // Check if answer contains bonz
                 if (expectedAnswer.includes('bonz')) {
@@ -875,18 +864,15 @@
         }
         
         function decodeAnswer() {
-            if (!connected) {
-                showPopup('Waiting for host connection...');
-                return;
-            }
-            
             const decodeInput = document.getElementById('decodeInput').value.toLowerCase();
             
-            socket.emit('submit-clue-answer', {
-                clueId: 2,
-                answer: decodeInput,
-                sessionId: sessionId
-            });
+            if (connected) {
+                socket.emit('submit-clue-answer', {
+                    clueId: 2,
+                    answer: decodeInput,
+                    sessionId: sessionId
+                });
+            }
             
             if (decodeInput === 'bonz') {
                 setTimeout(() => {
@@ -900,20 +886,27 @@
         }
         
         function askHostQuestion() {
-            if (!connected) {
-                showPopup('Waiting for host connection...');
-                return;
-            }
-            
             const question = document.getElementById('guestQuestion').value;
             
             if (question) {
                 document.getElementById('askHostBtn').disabled = true;
                 
-                socket.emit('ask-question', {
-                    question: question,
-                    sessionId: sessionId
-                });
+                if (connected) {
+                    socket.emit('ask-question', {
+                        question: question,
+                        sessionId: sessionId
+                    });
+                } else {
+                    // Offline mode responses
+                    const offlineResponses = [
+                        "The truth is, some stories are meant to remain mysteries.",
+                        "In the shadows of espionage, love was both their strength and weakness.",
+                        "A' and -oo7's tale reminds us that even legends have endings.",
+                        "Perhaps the real question is not what happened, but what you believe happened."
+                    ];
+                    const randomResponse = offlineResponses[Math.floor(Math.random() * offlineResponses.length)];
+                    displayHostResponse(randomResponse);
+                }
                 
                 setTimeout(() => {
                     document.getElementById('askHostBtn').disabled = false;
@@ -943,16 +936,15 @@
             document.getElementById('hostAnswer').style.display = 'none';
             document.getElementById('guestQuestion').value = '';
             
-            // Reset buttons
-            disableClue1Buttons(false);
-            
             currentClue = 1;
             giftCount = 0;
             
             // Generate new session
             sessionId = 'session_' + Date.now();
             localStorage.setItem('sessionId', sessionId);
-            socket.emit('join-game', sessionId);
+            if (connected) {
+                socket.emit('join-game', sessionId);
+            }
         }
     </script>
 </body>
