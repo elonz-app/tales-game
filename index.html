@@ -98,6 +98,15 @@
             animation: load 2s ease-out forwards;
         }
 
+        @keyframes load {
+            to { width: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         /* Login Screen */
         .login-screen {
             position: absolute;
@@ -152,7 +161,7 @@
             margin-bottom: 5px;
         }
 
-        .input-field input {
+        .input-field input, .input-field textarea, .input-field select {
             width: 100%;
             padding: 15px;
             background: black;
@@ -162,9 +171,14 @@
             font-size: 16px;
         }
 
-        .input-field input:focus {
+        .input-field input:focus, .input-field textarea:focus, .input-field select:focus {
             outline: none;
             border-color: var(--gold);
+        }
+
+        .input-field textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
         .login-btn {
@@ -178,6 +192,16 @@
             font-weight: 600;
             cursor: pointer;
             margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Game HUD */
@@ -251,6 +275,7 @@
             width: 18px;
             height: 2px;
             background: var(--gold);
+            transition: 0.3s;
         }
 
         /* Main Canvas */
@@ -293,6 +318,11 @@
             padding: 8px 12px;
             border-radius: 20px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:active {
+            background: var(--surface-light);
         }
 
         .action-icon { font-size: 20px; }
@@ -347,11 +377,17 @@
             padding: 15px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
         .option-tile.selected {
             border-color: var(--gold);
             background: rgba(212,175,55,0.1);
+            transform: scale(1.02);
+        }
+
+        .option-tile:active {
+            transform: scale(0.98);
         }
 
         /* Level Grid */
@@ -371,11 +407,28 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .level-node.unlocked { border-color: var(--gold); }
-        .level-node.completed { background: var(--success); }
-        .level-node.locked { opacity: 0.5; filter: grayscale(0.8); cursor: not-allowed; }
+        .level-node.unlocked { 
+            border-color: var(--gold);
+            background: rgba(212,175,55,0.1);
+        }
+        
+        .level-node.completed { 
+            background: linear-gradient(135deg, var(--success), #2e7d32);
+            border-color: white;
+        }
+        
+        .level-node.locked { 
+            opacity: 0.5; 
+            filter: grayscale(0.8); 
+            cursor: not-allowed; 
+        }
+
+        .level-node:active:not(.locked) {
+            transform: scale(0.95);
+        }
 
         /* Feature Pages */
         .feature-page {
@@ -404,6 +457,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            z-index: 10;
         }
 
         .back-btn {
@@ -445,6 +499,22 @@
 
         .message {
             margin-bottom: 15px;
+            display: flex;
+        }
+
+        .message.host {
+            justify-content: flex-start;
+        }
+
+        .message.player {
+            justify-content: flex-end;
+        }
+
+        .message.system .message-bubble {
+            background: var(--surface-light);
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         .message.host .message-bubble {
@@ -455,13 +525,13 @@
         .message.player .message-bubble {
             background: var(--gold);
             color: black;
-            margin-left: auto;
         }
 
         .message-bubble {
             max-width: 80%;
             padding: 10px 15px;
             border-radius: 15px;
+            word-wrap: break-word;
         }
 
         .chat-input-area {
@@ -487,6 +557,7 @@
             border-radius: 8px;
             color: black;
             font-weight: 600;
+            cursor: pointer;
         }
 
         /* Notifications */
@@ -501,11 +572,12 @@
             z-index: 10000;
             animation: slideIn 0.3s;
             max-width: 300px;
+            pointer-events: none;
         }
 
         @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .hidden { display: none !important; }
@@ -520,8 +592,25 @@
             border-radius: 50%;
         }
 
-        .status-online { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
-        .status-offline { background: #f44336; }
+        .status-online { 
+            background: #4caf50; 
+            box-shadow: 0 0 10px #4caf50; 
+        }
+        
+        .status-offline { 
+            background: #f44336; 
+        }
+
+        /* Admin Section */
+        #adminControls {
+            margin-top: 20px;
+        }
+
+        #adminControls input,
+        #adminControls textarea,
+        #adminControls select {
+            margin-bottom: 10px;
+        }
     </style>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
@@ -550,7 +639,7 @@
             
             <div class="input-field">
                 <label>USERNAME</label>
-                <input type="text" id="username" placeholder="Enter username">
+                <input type="text" id="username" placeholder="Enter username" autocomplete="off">
             </div>
             
             <div class="input-field">
@@ -558,7 +647,13 @@
                 <input type="password" id="password" placeholder="Enter password">
             </div>
             
-            <button class="login-btn" onclick="login()">ENTER THE REALM</button>
+            <button class="login-btn" onclick="login()" id="loginBtn">ENTER THE REALM</button>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="login-btn" style="background: var(--surface);" onclick="quickLogin('player1', '123456')">Demo 1</button>
+                <button class="login-btn" style="background: var(--surface);" onclick="quickLogin('player2', '123456')">Demo 2</button>
+            </div>
+            
             <div style="text-align: center; margin-top: 15px;">
                 <span style="color: var(--text-muted);">Admin: admin / 256@</span>
             </div>
@@ -587,7 +682,7 @@
             </div>
         </div>
 
-        <!-- Simple Menu (Replace Radial) -->
+        <!-- Simple Menu -->
         <div id="simpleMenu" class="feature-page" style="transform: translateX(-100%);">
             <div class="feature-header">
                 <div class="back-btn" onclick="toggleMenu()">←</div>
@@ -636,6 +731,15 @@
                         <div>
                             <div style="color: var(--gold);">ADMIN</div>
                             <div style="font-size: 12px;">Manage levels</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-card" onclick="logout()">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 30px;">🚪</span>
+                        <div>
+                            <div style="color: var(--gold);">LOGOUT</div>
+                            <div style="font-size: 12px;">Exit game</div>
                         </div>
                     </div>
                 </div>
@@ -720,12 +824,13 @@
         <div class="feature-header">
             <div class="back-btn" onclick="closeFeature('chat')">←</div>
             <div class="feature-title">CHAT</div>
+            <div style="margin-left: auto; color: var(--gold);" id="onlineCount">0 online</div>
         </div>
         <div class="feature-content">
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Type message...">
+                    <input type="text" id="chatInput" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendMessage()">
                     <button onclick="sendMessage()">SEND</button>
                 </div>
             </div>
@@ -761,7 +866,7 @@
             <div class="content-card">
                 <div id="adminLogin">
                     <h3 style="color: var(--gold); margin-bottom: 15px;">ADMIN ACCESS</h3>
-                    <input type="password" id="adminCode" class="input-field" style="width:100%; margin-bottom:15px;" placeholder="Enter passcode">
+                    <input type="password" id="adminCode" class="input-field" style="width:100%; margin-bottom:15px;" placeholder="Enter passcode" onkeypress="if(event.key==='Enter') verifyAdmin()">
                     <button class="login-btn" onclick="verifyAdmin()">ACCESS</button>
                 </div>
                 <div id="adminControls" class="hidden">
@@ -796,7 +901,8 @@
 
     <script>
         // ===== CONFIG =====
-        const BACKEND_URL = 'https://your-backend-url.railway.app'; // Replace with your Railway URL
+        // Auto-detect backend URL
+        const BACKEND_URL = window.location.origin;
         const SOCKET_URL = BACKEND_URL;
         
         // ===== STATE =====
@@ -806,6 +912,8 @@
         let currentLevel = 1;
         let selectedAnswer = null;
         let completedLevels = [];
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
 
         // ===== LOADING =====
         setTimeout(() => {
@@ -815,28 +923,88 @@
             }, 500);
         }, 2000);
 
+        // Check server health
+        async function checkServerHealth() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                document.getElementById('serverStatus').innerHTML = '🟢 Online';
+                document.getElementById('serverStatus').style.color = '#4caf50';
+                return true;
+            } catch (error) {
+                document.getElementById('serverStatus').innerHTML = '🔴 Offline - Check Railway';
+                document.getElementById('serverStatus').style.color = '#f44336';
+                return false;
+            }
+        }
+        checkServerHealth();
+        setInterval(checkServerHealth, 30000);
+
         // ===== SOCKET CONNECTION =====
         function connectSocket() {
+            if (socket) {
+                socket.disconnect();
+            }
+
             socket = io(SOCKET_URL, {
-                transports: ['websocket'],
-                reconnection: true
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: maxReconnectAttempts,
+                reconnectionDelay: 1000,
+                timeout: 10000
             });
 
             socket.on('connect', () => {
                 console.log('✅ Connected to server');
                 document.getElementById('serverStatus').innerHTML = '🟢 Online';
+                reconnectAttempts = 0;
+                
                 if (currentUser) {
                     socket.emit('join-chat', currentUser.username);
                 }
             });
 
+            socket.on('connect_error', (error) => {
+                console.log('Connection error:', error);
+                reconnectAttempts++;
+                
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    document.getElementById('serverStatus').innerHTML = '🔴 Connection Failed';
+                    showToast('Connection Error', 'Cannot connect to chat server', '⚠️');
+                }
+            });
+
             socket.on('disconnect', () => {
                 console.log('❌ Disconnected');
-                document.getElementById('serverStatus').innerHTML = '🔴 Offline';
+                document.getElementById('serverStatus').innerHTML = '🔄 Reconnecting...';
             });
 
             socket.on('new-message', (data) => {
-                addChatMessage(data.username, data.message, data.type);
+                addChatMessage(data.username, data.message, data.type || 'text');
+            });
+
+            socket.on('user-joined', (data) => {
+                addChatMessage('System', `${data.username} joined the chat`, 'system');
+                document.getElementById('onlineCount').innerText = `${data.count} online`;
+            });
+
+            socket.on('user-left', (data) => {
+                if (data.username) {
+                    addChatMessage('System', `${data.username} left`, 'system');
+                }
+                document.getElementById('onlineCount').innerText = `${data.count} online`;
+            });
+
+            socket.on('active-users', (count) => {
+                document.getElementById('onlineCount').innerText = `${count} online`;
+            });
+
+            socket.on('message-history', (messages) => {
+                const chatDiv = document.getElementById('chatMessages');
+                chatDiv.innerHTML = '';
+                messages.forEach(msg => {
+                    addChatMessage(msg.username, msg.message, msg.type);
+                });
             });
 
             socket.on('level-added', (level) => {
@@ -848,13 +1016,17 @@
 
         // ===== LOGIN =====
         async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
 
             if (!username || !password) {
                 showToast('Error', 'Enter username and password', '⚠️');
                 return;
             }
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = 'CONNECTING...';
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, {
@@ -877,15 +1049,41 @@
                     document.getElementById('gameHUD').classList.add('visible');
                     
                     connectSocket();
-                    loadLevelsFromServer();
+                    await loadLevelsFromServer();
                     
                     showToast('Welcome!', `Hello, ${currentUser.username}!`, '🏰');
                 } else {
                     document.getElementById('loginError').innerText = data.error || 'Login failed';
+                    showToast('Login Failed', data.error || 'Invalid credentials', '❌');
                 }
             } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').innerText = 'Cannot connect to server';
                 showToast('Connection Error', 'Cannot reach server', '⚠️');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerText = 'ENTER THE REALM';
             }
+        }
+
+        // Quick login for demo
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            login();
+        }
+
+        // Logout
+        function logout() {
+            if (socket) {
+                socket.disconnect();
+            }
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('gameHUD').classList.remove('visible');
+            document.getElementById('simpleMenu').classList.remove('active');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
         }
 
         // ===== LOAD LEVELS =====
@@ -896,16 +1094,19 @@
                 loadLevels();
             } catch (error) {
                 console.error('Failed to load levels');
+                showToast('Error', 'Failed to load levels', '⚠️');
             }
         }
 
         function loadLevels() {
             const grid = document.getElementById('levelGrid');
+            if (!grid) return;
+            
             grid.innerHTML = '';
 
             for (let i = 1; i <= 25; i++) {
                 const level = gameLevels.find(l => l.levelId === i);
-                const isUnlocked = level ? level.unlocked : false;
+                const isUnlocked = level ? level.unlocked : (i === 1);
                 const isCompleted = currentUser?.completedLevels?.includes(i);
 
                 const node = document.createElement('div');
@@ -914,12 +1115,16 @@
                     if (isUnlocked && !isCompleted) {
                         loadLevel(i);
                         closeFeature('levels');
+                    } else if (isCompleted) {
+                        showToast('Completed', 'You already finished this level', '🏆');
+                    } else {
+                        showToast('Locked', 'Complete previous levels first', '🔒');
                     }
                 };
 
                 node.innerHTML = `
-                    <div style="font-size: 20px;">${i}</div>
-                    <div>${isCompleted ? '🏆' : isUnlocked ? '⚔️' : '🔒'}</div>
+                    <div style="font-size: 20px; font-weight: bold;">${i}</div>
+                    <div style="font-size: 16px;">${isCompleted ? '🏆' : isUnlocked ? '⚔️' : '🔒'}</div>
                 `;
                 grid.appendChild(node);
             }
@@ -941,22 +1146,25 @@
                     <div class="card-icon">⚔️</div>
                     <div class="card-title">LEVEL ${level.levelId}</div>
                 </div>
-                <p>${level.title}</p>
+                <p style="color: var(--gold); font-size: 18px; margin-bottom: 10px;">${level.title}</p>
                 <p style="color: var(--text-muted); margin: 15px 0;">${level.description}</p>
                 <div class="options-grid">
-                    <div class="option-tile" onclick="selectOption('A')" id="optA">A. ${level.options[0]}</div>
-                    <div class="option-tile" onclick="selectOption('B')" id="optB">B. ${level.options[1]}</div>
-                    <div class="option-tile" onclick="selectOption('C')" id="optC">C. ${level.options[2]}</div>
-                    <div class="option-tile" onclick="selectOption('D')" id="optD">D. ${level.options[3]}</div>
+                    <div class="option-tile" onclick="selectOption('A')" id="optA">A. ${level.options[0] || 'Option A'}</div>
+                    <div class="option-tile" onclick="selectOption('B')" id="optB">B. ${level.options[1] || 'Option B'}</div>
+                    <div class="option-tile" onclick="selectOption('C')" id="optC">C. ${level.options[2] || 'Option C'}</div>
+                    <div class="option-tile" onclick="selectOption('D')" id="optD">D. ${level.options[3] || 'Option D'}</div>
                 </div>
-                <button class="login-btn" onclick="submitLevel()">SUBMIT</button>
+                <button class="login-btn" onclick="submitLevel()">SUBMIT ANSWER</button>
             `;
         }
 
         function selectOption(opt) {
             selectedAnswer = opt;
             document.querySelectorAll('.option-tile').forEach(el => el.classList.remove('selected'));
-            document.getElementById('opt' + opt)?.classList.add('selected');
+            const selectedEl = document.getElementById('opt' + opt);
+            if (selectedEl) {
+                selectedEl.classList.add('selected');
+            }
         }
 
         async function submitLevel() {
@@ -968,40 +1176,53 @@
             const level = gameLevels.find(l => l.levelId === currentLevel);
             if (!level) return;
 
-            if (selectedAnswer === level.correct) {
-                const response = await fetch(`${BACKEND_URL}/api/progress`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: currentUser.username,
-                        levelId: currentLevel,
-                        completed: true,
-                        score: 100,
-                        gems: 20
-                    })
-                });
+            const submitBtn = document.querySelector('#levelCard .login-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'CHECKING...';
 
-                const data = await response.json();
-                if (data.success) {
-                    currentUser.level = data.level;
-                    currentUser.gems = data.gems;
-                    currentUser.score = data.score;
-                    currentUser.completedLevels = data.completedLevels;
-                    
-                    updateStats();
-                    showToast('Victory!', 'Level completed!', '🏆');
-                    
-                    setTimeout(() => {
-                        if (currentLevel < 25) {
-                            loadLevel(currentLevel + 1);
-                        } else {
-                            document.getElementById('levelCard').classList.add('hidden');
-                            document.getElementById('introCard').classList.remove('hidden');
-                        }
-                    }, 2000);
+            try {
+                if (selectedAnswer === level.correct) {
+                    const response = await fetch(`${BACKEND_URL}/api/progress`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUser.username,
+                            levelId: currentLevel,
+                            completed: true,
+                            score: 100,
+                            gems: 20
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        currentUser.level = data.level;
+                        currentUser.gems = data.gems;
+                        currentUser.score = data.score;
+                        currentUser.completedLevels = data.completedLevels;
+                        
+                        updateStats();
+                        loadLevels();
+                        showToast('Victory!', 'Level completed! +100 Score, +20 Gems', '🏆');
+                        
+                        setTimeout(() => {
+                            if (currentLevel < 25) {
+                                loadLevel(currentLevel + 1);
+                            } else {
+                                document.getElementById('levelCard').classList.add('hidden');
+                                document.getElementById('introCard').classList.remove('hidden');
+                                showToast('Congratulations!', 'You completed all levels!', '👑');
+                            }
+                        }, 2000);
+                    }
+                } else {
+                    showToast('Wrong Answer', 'Try again!', '🤔');
                 }
-            } else {
-                showToast('Wrong', 'Try again', '🤔');
+            } catch (error) {
+                showToast('Error', 'Failed to submit answer', '⚠️');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'SUBMIT ANSWER';
             }
         }
 
@@ -1010,23 +1231,33 @@
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
-            if (message && socket && currentUser) {
+            if (message && socket && socket.connected && currentUser) {
                 socket.emit('send-message', {
                     username: currentUser.username,
                     message: message
                 });
                 input.value = '';
+            } else if (!socket || !socket.connected) {
+                showToast('Error', 'Not connected to chat', '⚠️');
             }
         }
 
-        function addChatMessage(username, message, type) {
+        function addChatMessage(username, message, type = 'text') {
             const chatDiv = document.getElementById('chatMessages');
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${username === currentUser?.username ? 'player' : 'host'}`;
+            
+            let messageClass = 'host';
+            if (type === 'system') {
+                messageClass = 'system';
+            } else if (username === currentUser?.username) {
+                messageClass = 'player';
+            }
+            
+            msgDiv.className = `message ${messageClass}`;
             
             msgDiv.innerHTML = `
                 <div class="message-bubble">
-                    <div style="font-size: 11px; color: var(--gold);">${username}</div>
+                    ${type !== 'system' ? `<div style="font-size: 11px; color: ${messageClass === 'player' ? '#000' : 'var(--gold)'};">${username}</div>` : ''}
                     <div>${message}</div>
                 </div>
             `;
@@ -1047,12 +1278,12 @@
         }
 
         async function addLevel() {
-            const title = document.getElementById('levelTitle').value;
-            const desc = document.getElementById('levelDesc').value;
-            const optA = document.getElementById('optA').value;
-            const optB = document.getElementById('optB').value;
-            const optC = document.getElementById('optC').value;
-            const optD = document.getElementById('optD').value;
+            const title = document.getElementById('levelTitle').value.trim();
+            const desc = document.getElementById('levelDesc').value.trim();
+            const optA = document.getElementById('optA').value.trim();
+            const optB = document.getElementById('optB').value.trim();
+            const optC = document.getElementById('optC').value.trim();
+            const optD = document.getElementById('optD').value.trim();
             const correct = document.getElementById('correctOpt').value;
 
             if (!title || !desc || !optA || !optB || !optC || !optD) {
@@ -1068,20 +1299,31 @@
                 correct
             };
 
-            const response = await fetch(`${BACKEND_URL}/api/levels`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newLevel)
-            });
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/levels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newLevel)
+                });
 
-            if (response.ok) {
-                showToast('Success', 'Level added!', '📜');
-                document.getElementById('levelTitle').value = '';
-                document.getElementById('levelDesc').value = '';
-                document.getElementById('optA').value = '';
-                document.getElementById('optB').value = '';
-                document.getElementById('optC').value = '';
-                document.getElementById('optD').value = '';
+                if (response.ok) {
+                    showToast('Success', 'Level added!', '📜');
+                    // Clear form
+                    document.getElementById('levelTitle').value = '';
+                    document.getElementById('levelDesc').value = '';
+                    document.getElementById('optA').value = '';
+                    document.getElementById('optB').value = '';
+                    document.getElementById('optC').value = '';
+                    document.getElementById('optD').value = '';
+                    document.getElementById('correctOpt').value = 'A';
+                    
+                    // Reload levels
+                    await loadLevelsFromServer();
+                } else {
+                    showToast('Error', 'Failed to add level', '⚠️');
+                }
+            } catch (error) {
+                showToast('Error', 'Server error', '⚠️');
             }
         }
 
@@ -1091,12 +1333,18 @@
         }
 
         function openFeature(feature) {
-            document.getElementById(feature + 'Page').classList.add('active');
-            toggleMenu();
+            const page = document.getElementById(feature + 'Page');
+            if (page) {
+                page.classList.add('active');
+                toggleMenu();
+            }
         }
 
         function closeFeature(feature) {
-            document.getElementById(feature + 'Page').classList.remove('active');
+            const page = document.getElementById(feature + 'Page');
+            if (page) {
+                page.classList.remove('active');
+            }
         }
 
         function showRestartDialog() {
@@ -1141,29 +1389,48 @@
         }
 
         function startGame() {
-            loadLevel(1);
+            if (gameLevels.length > 0) {
+                loadLevel(1);
+            } else {
+                showToast('Error', 'No levels available', '⚠️');
+            }
         }
 
         // Load inventory
         function loadInventory() {
             const grid = document.getElementById('inventoryGrid');
+            if (!grid) return;
+            
             grid.innerHTML = '';
             const items = [
                 { icon: '🎁', name: 'Mystery Box', qty: 2 },
-                { icon: '🗝️', name: 'Golden Key', qty: 1 }
+                { icon: '🗝️', name: 'Golden Key', qty: 1 },
+                { icon: '📜', name: 'Ancient Scroll', qty: 3 },
+                { icon: '⚔️', name: 'Sword', qty: 1 }
             ];
             items.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'option-tile';
                 div.innerHTML = `
                     <div style="font-size: 40px;">${item.icon}</div>
-                    <div>${item.name}</div>
+                    <div style="color: var(--gold);">${item.name}</div>
                     <div>x${item.qty}</div>
                 `;
                 grid.appendChild(div);
             });
         }
         loadInventory();
+
+        // Handle visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (socket) socket.disconnect();
+            } else {
+                if (currentUser && (!socket || !socket.connected)) {
+                    connectSocket();
+                }
+            }
+        });
     </script>
 </body>
 </html>
