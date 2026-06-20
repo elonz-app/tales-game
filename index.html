@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Blueman Space</title>
+    <!-- 1. IMPORT SUPABASE JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -26,14 +27,12 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body {
+        /* Use dynamic viewport height to adapt to mobile browser toolbars */
+        html, body {
             background-color: var(--bg-main);
             color: var(--text-primary);
-            height: 100vh;
+            height: 100dvh;
             width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
             background-image: radial-gradient(circle at 50% 50%, #10222b 0%, var(--bg-main) 70%);
         }
@@ -46,15 +45,21 @@
             align-items: center;
         }
 
-        /* LOGO MECHANICS */
+        /* ADVANCED GRAPHIC LOGO */
         .logo-mark {
             position: relative;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 10px;
+            width: 42px;
+            height: 42px;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
+        }
+
+        .splash-logo {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 10px;
         }
 
         .logo-shape-1 {
@@ -77,12 +82,17 @@
         }
 
         .logo-core {
-            width: 24px;
-            height: 24px;
+            width: 14px;
+            height: 14px;
             background: #fff;
             border-radius: 50%;
             box-shadow: 0 0 15px #fff, 0 0 30px var(--accent-blue);
             z-index: 2;
+        }
+
+        .splash-logo .logo-core {
+            width: 24px;
+            height: 24px;
         }
 
         @keyframes morphGraphic {
@@ -91,7 +101,7 @@
             100% { border-radius: 35% 65% 60% 40% / 40% 45% 55% 60%; transform: rotate(360deg); }
         }
 
-        /* SPLASH SCREEN */
+        /* LOADING HUB PORTAL */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -137,7 +147,7 @@
             letter-spacing: 1px;
         }
 
-        /* GATEWAY LOCK */
+        /* LOGIN INTERFACE */
         #login-screen {
             display: none;
             background: var(--bg-surface);
@@ -165,7 +175,6 @@
             color: var(--text-primary);
             border-radius: 14px;
             font-size: 15px;
-            transition: all 0.2s ease;
         }
         input:focus {
             outline: none;
@@ -185,18 +194,13 @@
             cursor: pointer;
             margin-top: 15px;
             box-shadow: 0 5px 15px rgba(0, 102, 255, 0.3);
-            transition: all 0.2s ease;
-        }
-        button.action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 163, 255, 0.5);
         }
 
-        /* WHATSAPP-STYLE FIXED CHATROOM SCREEN STRUCTURING */
+        /* ADAPTIVE CHATROOM VIEWPORT */
         #chat-screen {
             display: none;
             width: 100%;
-            height: 100%;
+            height: 100%; /* Spans full dynamic height, keeping input bar inside window boundaries */
             background: var(--bg-surface);
             flex-direction: column;
             position: relative;
@@ -213,16 +217,16 @@
             }
         }
 
-        /* STATIC TOP HEADER BAR */
+        /* FIXED HEADER */
         .chat-header {
-            height: 70px;
+            height: 75px;
             background-color: var(--bg-surface);
-            padding: 0 20px;
+            padding: 0 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.04);
-            flex-shrink: 0; /* Prevents header from resizing or crushing */
+            flex-shrink: 0;
             z-index: 10;
         }
 
@@ -230,19 +234,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .header-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--accent-blue), #0066ff);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: white;
-            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         .chat-header h3 { font-size: 16px; font-weight: 600; color: #fff;}
@@ -273,9 +264,9 @@
             100% { transform: scale(0.9); opacity: 0.6; }
         }
 
-        /* PREMIUM TEARDOWN BUTTON */
+        /* TEARDOWN BUTTON */
         .teardown-trigger {
-            padding: 10px 18px;
+            padding: 10px 16px;
             background: linear-gradient(135deg, rgba(255, 51, 102, 0.05), rgba(255, 51, 102, 0.12));
             border: 1px solid rgba(255, 51, 102, 0.4);
             border-radius: 12px;
@@ -288,24 +279,21 @@
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
         }
         .teardown-trigger:hover {
             background: var(--signal-red);
             color: white;
             border-color: var(--signal-red);
             box-shadow: 0 0 20px var(--red-glow);
-            transform: translateY(-1px);
         }
 
-        /* TRUE WHATSAPP TIMELINE IN-SCROLL LAYER */
+        /* SCROLLABLE MESSAGE STREAM AREA */
         .message-area {
-            flex: 1;               /* Takes exactly the remaining frame block */
-            overflow-y: auto;       /* Enables custom scroll viewport inside container only */
+            flex: 1;               /* Dynamically claims all workspace area between header and input form */
+            overflow-y: auto;       /* Isolates scrolling exclusively here */
             overflow-x: hidden;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -313,11 +301,11 @@
             background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 0);
             background-size: 24px 24px;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* Butter smooth mobile inertial physics */
+            -webkit-overflow-scrolling: touch;
         }
 
         .message {
-            max-width: 75%;
+            max-width: 80%;
             padding: 10px 14px;
             border-radius: 16px;
             font-size: 14.5px;
@@ -360,98 +348,62 @@
 
         .media-preview {
             max-width: 100%;
-            max-height: 280px;
+            max-height: 250px;
             border-radius: 10px;
             margin-top: 6px;
             display: block;
-            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .view-once-btn {
-            background-color: rgba(0, 163, 255, 0.1);
-            color: var(--accent-blue);
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px dashed rgba(0, 163, 255, 0.4);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12.5px;
-            font-weight: 600;
-            margin-top: 6px;
-            transition: background 0.2s;
-        }
-        .view-once-btn:hover { background-color: rgba(0, 163, 255, 0.2); }
-
-        .destroyed-text {
-            color: var(--text-secondary);
-            font-style: italic;
-            font-size: 12.5px;
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* FIXED FOOTER CONTROL BAR */
+        /* FIXED INPUT FOOTER BAR */
         .input-bar {
-            height: 76px;
+            height: 70px;
             background-color: var(--bg-surface);
-            padding: 0 16px;
+            padding: 0 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             border-top: 1px solid rgba(255,255,255,0.04);
-            flex-shrink: 0; /* Stops bottom element from shifting offscreen */
+            flex-shrink: 0; /* Prevents this bar from being hidden or scaled down */
             z-index: 10;
         }
 
         .input-bar input[type="text"] {
             flex: 1; margin: 0; border: 1px solid rgba(255,255,255,0.02);
-            padding: 12px 16px; background-color: var(--bg-input);
+            padding: 12px 14px; background-color: var(--bg-input);
             border-radius: 12px; color: var(--text-primary);
             font-size: 15px;
-            transition: border-color 0.2s;
         }
 
         .file-label {
             cursor: pointer; font-size: 18px; color: var(--text-secondary);
             padding: 4px;
-            transition: transform 0.2s, color 0.2s;
         }
-        .file-label:hover { color: #fff; transform: scale(1.1); }
         #file-input { display: none; }
 
         .view-once-toggle {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 13px; color: var(--text-secondary); cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+            font-size: 12px; color: var(--text-secondary); cursor: pointer;
             font-weight: 600;
             white-space: nowrap;
         }
-        .view-once-toggle input { width: 15px; height: 15px; accent-color: var(--accent-blue); }
+        .view-once-toggle input { width: 14px; height: 14px; accent-color: var(--accent-blue); }
 
         .send-btn {
             background: linear-gradient(135deg, #0066ff, var(--accent-blue)); 
             color: white; border: none;
-            width: 44px; height: 44px; border-radius: 12px;
+            width: 42px; height: 42px; border-radius: 12px;
             cursor: pointer; display: flex; align-items: center;
             justify-content: center; font-size: 15px;
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
             flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-        .send-btn:hover {
-            transform: scale(1.04);
-            box-shadow: 0 6px 16px rgba(0, 163, 255, 0.4);
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <!-- CHANNELS INITIAL SPLASH LOGO VIEW -->
         <div id="splash-screen">
-            <div class="logo-mark">
+            <div class="logo-mark splash-logo">
                 <div class="logo-shape-1"></div>
                 <div class="logo-shape-2"></div>
                 <div class="logo-core"></div>
@@ -463,12 +415,13 @@
             <div class="counter-text" id="load-counter">0%</div>
         </div>
 
+        <!-- AUTH GATEWAY INTERFACE -->
         <div id="login-screen">
             <div style="display:flex; justify-content:center; margin-bottom:20px;">
-                <div class="logo-mark" style="width:60px; height:60px;">
+                <div class="logo-mark splash-logo" style="width:60px; height:60px;">
                     <div class="logo-shape-1"></div>
                     <div class="logo-shape-2"></div>
-                    <div class="logo-core" style="width:20px; height:20px;"></div>
+                    <div class="logo-core"></div>
                 </div>
             </div>
             <h2 style="margin-bottom:4px; font-weight:700;">Gateway Access</h2>
@@ -478,10 +431,16 @@
             <button class="action-btn" onclick="verifyCredentials()">Initialize Link</button>
         </div>
 
+        <!-- LIVE MAIN INTERACT WORKSPACE -->
         <div id="chat-screen">
             <div class="chat-header">
                 <div class="header-profile">
-                    <div class="header-avatar" id="user-avatar">U</div>
+                    <!-- Advanced dynamic custom logo structure replacing standard letter badge -->
+                    <div class="logo-mark">
+                        <div class="logo-shape-1"></div>
+                        <div class="logo-shape-2"></div>
+                        <div class="logo-core"></div>
+                    </div>
                     <div>
                         <h3>Blueman Space</h3>
                         <div class="status-container">
@@ -493,6 +452,7 @@
                 <button class="teardown-trigger" onclick="window.location.reload()">Teardown</button>
             </div>
 
+            <!-- Scrollable chronological timeline message log layer -->
             <div class="message-area" id="message-area"></div>
 
             <form class="input-bar" id="chat-form" onsubmit="dispatchPayload(event)">
@@ -547,7 +507,6 @@
             if (!userText) { alert("Handle cannot be blank."); return; }
             if (passText === TARGET_PASS) {
                 currentUserHandle = userText;
-                document.getElementById("user-avatar").innerText = currentUserHandle.charAt(0).toUpperCase();
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("chat-screen").style.display = "flex";
                 
@@ -624,7 +583,7 @@
             await supabaseClient.from('messages').insert([messageObject]);
 
             textField.value = "";
-            textField.placeholder = "Type safe message..."
+            textField.placeholder = "Type safe message...";
             fileInput.value = "";
             viewOnceBox.checked = false;
         }
