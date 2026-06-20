@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blueman · Firebase</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0b141a;
+            color: #e9edef;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 1. SPLASH / LOADING SCREEN */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0b141a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .blueman-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #00a3ff, #0066ff);
+            border-radius: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 25px rgba(0, 163, 255, 0.4);
+            font-weight: bold;
+            font-size: 36px;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e9edef;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-box {
+            width: 250px;
+            height: 3px;
+            background-color: #233138;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #00a3ff;
+            box-shadow: 0 0 8px #00a3ff;
+            transition: width 0.1s linear;
+        }
+
+        .status-text {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #8696a0;
+            letter-spacing: 0.5px;
+        }
+
+        /* 2. AUTHENTICATION SCREEN */
+        #login-screen {
+            display: none;
+            background: #111b21;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 380px;
+            border: 1px solid #222e35;
+        }
+
+        #login-screen h2 {
+            color: #e9edef;
+            margin-bottom: 8px;
+            font-size: 22px;
+        }
+
+        #login-screen p {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 1px solid #2a3942;
+            background-color: #202c33;
+            color: #d1d7db;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        input:focus { outline: 1px solid #00a3ff; }
+
+        button.action-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #00a3ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button.action-btn:hover { background-color: #008be5; }
+
+        /* 3. MAIN CHAT ENGINE WINDOW */
+        #chat-screen {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            height: 95vh;
+            background: #0b141a;
+            border: 1px solid #222e35;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            border-radius: 12px;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #202c33;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a3942;
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            background: #00a3ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .chat-header h3 { font-size: 16px; font-weight: 500; color: #e9edef;}
+        .chat-header .status { font-size: 12px; color: #8696a0; display: block;}
+
+        .message-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: #0b141a;
+            background-image: radial-gradient(#152026 1px, transparent 0);
+            background-size: 16px 16px;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14.5px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.sent { background-color: #005c4b; color: #e9edef; align-self: flex-end; }
+        .message.received { background-color: #202c33; color: #e9edef; align-self: flex-start; }
+
+        .message .username {
+            font-weight: 600;
+            font-size: 11.5px;
+            color: #00a3ff;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .media-preview {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 6px;
+            margin-top: 6px;
+            display: block;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .view-once-btn {
+            background-color: rgba(0, 163, 255, 0.15);
+            color: #00a3ff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px dashed #00a3ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-top: 6px;
+            transition: background 0.2s;
+        }
+        .view-once-btn:hover { background-color: rgba(0, 163, 255, 0.25); }
+
+        .destroyed-text {
+            color: #8696a0;
+            font-style: italic;
+            font-size: 13px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-bar {
+            background-color: #202c33;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-bar input[type="text"] {
+            flex: 1; margin: 0; border: none;
+            padding: 12px 16px; background-color: #2a3942;
+            border-radius: 8px; color: #d1d7db;
+        }
+
+        .file-label {
+            cursor: pointer; font-size: 22px; color: #8696a0;
+            transition: color 0.2s;
+        }
+        .file-label:hover { color: #d1d7db; }
+        #file-input { display: none; }
+
+        .view-once-toggle {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: #8696a0; cursor: pointer;
+            user-select: none; padding: 6px; border-radius: 4px;
+        }
+        .view-once-toggle input { accent-color: #00a3ff; }
+
+        .send-btn {
+            background-color: #00a3ff; color: white; border: none;
+            width: 42px; height: 42px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 16px;
+        }
+        .send-btn:hover { background-color: #008be5; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="logo-container">
+            <div class="blueman-logo">B</div>
+            <div class="app-title">BLUEMAN</div>
+        </div>
+        <div class="progress-box">
+            <div class="progress-bar" id="load-bar"></div>
+        </div>
+        <div class="status-text" id="load-status">Initializing dynamic stack...</div>
+    </div>
+
+    <div id="login-screen">
+        <div class="blueman-logo" style="margin: 0 auto 20px auto;">B</div>
+        <h2>Enter Gateway Portal</h2>
+        <p>Ephemeral memory space connection</p>
+        <input type="text" id="username-input" placeholder="Pick a display handle" autocomplete="off" />
+        <input type="password" id="passcode-input" placeholder="Access key passcode" />
+        <button class="action-btn" onclick="verifyCredentials()">Initialize Link</button>
+    </div>
+
+    <div id="chat-screen">
+        <div class="chat-header">
+            <div class="header-profile">
+                <div class="header-avatar" id="user-avatar">U</div>
+                <div>
+                    <h3 id="room-identity">Blueman Terminal Space</h3>
+                    <span class="status" id="connection-indicator">Syncing with real-time bus...</span>
+                </div>
+            </div>
+            <button onclick="clearChat()" style="padding: 8px 14px; background: #ea0038; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer;">Wipe Room</button>
+        </div>
+
+        <div class="message-area" id="message-area"></div>
+
+        <form class="input-bar" id="chat-form" onsubmit="dispatchPayload(event)">
+            <label for="file-input" class="file-label" title="Upload Media File">📎</label>
+            <input type="file" id="file-input" accept="image/*,video/*" onchange="fileSelectionHook()" />
+
+            <input type="text" id="msg-text" placeholder="Type safe message..." autocomplete="off" />
+
+            <label class="view-once-toggle">
+                <input type="checkbox" id="view-once-chk" /> 1️⃣ View Once
+            </label>
+
+            <button type="submit" class="send-btn">➔</button>
+        </form>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 1. FIREBASE CONFIG – REPLACE WITH YOUR OWN (from Firebase Console)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const messagesRef = db.ref('blueman_messages');
+
+        // ============================================================
+        // APP STATE
+        // ============================================================
+        const TARGET_PASS = "blueman";
+        let currentUserHandle = "User";
+        let memoryArrayLog = [];
+        let isProcessingHistory = false; // avoid duplicate loading
+
+        // ============================================================
+        // SPLASH LOADING
+        // ============================================================
+        window.addEventListener("DOMContentLoaded", () => {
+            const bar = document.getElementById("load-bar");
+            const textStatus = document.getElementById("load-status");
+            let progress = 0;
+
+            const stages = [
+                { limit: 30, text: "Allocating volatile RAM allocations..." },
+                { limit: 65, text: "Securing local memory arrays..." },
+                { limit: 90, text: "Linking to Firebase cloud..." },
+                { limit: 100, text: "Ready." }
+            ];
+
+            let stageIndex = 0;
+
+            const loaderInterval = setInterval(() => {
+                progress += Math.floor(Math.random() * 8) + 2;
+                if (progress > 100) progress = 100;
+
+                bar.style.width = `${progress}%`;
+
+                if (stageIndex < stages.length && progress >= stages[stageIndex].limit) {
+                    textStatus.innerText = stages[stageIndex].text;
+                    stageIndex++;
+                }
+
+                if (progress === 100) {
+                    clearInterval(loaderInterval);
+                    setTimeout(() => {
+                        const splash = document.getElementById("splash-screen");
+                        splash.style.opacity = "0";
+                        setTimeout(() => {
+                            splash.style.display = "none";
+                            document.getElementById("login-screen").style.display = "block";
+                        }, 500);
+                    }, 400);
+                }
+            }, 80);
+        });
+
+        // ============================================================
+        // LOGIN
+        // ============================================================
+        function verifyCredentials() {
+            const userText = document.getElementById("username-input").value.trim();
+            const passText = document.getElementById("passcode-input").value;
+
+            if (!userText) { alert("Handle cannot remain blank."); return; }
+            
+            if (passText === TARGET_PASS) {
+                currentUserHandle = userText;
+                document.getElementById("user-avatar").innerText = currentUserHandle.charAt(0).toUpperCase();
+                
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("chat-screen").style.display = "flex";
+                
+                initializeRealtime();
+            } else {
+                alert("Decryption key error. Access denied.");
+            }
+        }
+
+        // ============================================================
+        // REAL-TIME ENGINE (Firebase)
+        // ============================================================
+        function initializeRealtime() {
+            const statusIndicator = document.getElementById("connection-indicator");
+
+            // 1. Listen for NEW messages (child_added)
+            messagesRef.on('child_added', (snapshot) => {
+                const payload = snapshot.val();
+                
+                // Avoid duplicate if we already pushed it locally (safety check)
+                const exists = memoryArrayLog.some(m => m.uid === payload.uid);
+                if (!exists) {
+                    memoryArrayLog.push(payload);
+                    renderWorkspaceDOM();
+                }
+            });
+
+            // 2. Listen for connection state (optional)
+            const connectedRef = firebase.database().ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                if (snap.val() === true) {
+                    statusIndicator.innerText = "Connected to real-time bus";
+                    statusIndicator.style.color = "#00a3ff";
+                } else {
+                    statusIndicator.innerText = "Disconnected – reconnecting...";
+                    statusIndicator.style.color = "#ea0038";
+                }
+            });
+
+            statusIndicator.innerText = "Listening for messages...";
+            statusIndicator.style.color = "#8696a0";
+        }
+
+        // ============================================================
+        // SEND MESSAGE
+        // ============================================================
+        function dispatchPayload(e) {
+            e.preventDefault();
+            const textField = document.getElementById("msg-text");
+            const fileInput = document.getElementById("file-input");
+            const viewOnceBox = document.getElementById("view-once-chk");
+
+            if (!textField.value.trim() && fileInput.files.length === 0) return;
+
+            let objectBlobString = null;
+            let capturedMimeType = null;
+
+            if (fileInput.files.length > 0) {
+                const attachedFile = fileInput.files[0];
+                objectBlobString = URL.createObjectURL(attachedFile);
+                capturedMimeType = attachedFile.type;
+            }
+
+            const messageObject = {
+                uid: "msg_" + Math.random().toString(36).substring(2, 11),
+                sender: currentUserHandle,
+                messageText: textField.value.trim(),
+                fileBlob: objectBlobString,
+                fileType: capturedMimeType,
+                viewOnceFlag: viewOnceBox.checked,
+                spent: false,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // Push to Firebase – the 'child_added' listener will add it to our local array
+            messagesRef.push(messageObject);
+
+            // Flush UI
+            textField.value = "";
+            textField.placeholder = "Type safe message...";
+            fileInput.value = "";
+            viewOnceBox.checked = false;
+        }
+
+        // ============================================================
+        // RENDER DOM
+        // ============================================================
+        function renderWorkspaceDOM() {
+            const chatContainer = document.getElementById("message-area");
+            chatContainer.innerHTML = "";
+
+            memoryArrayLog.forEach(item => {
+                const wrapper = document.createElement("div");
+                wrapper.className = `message ${item.sender === currentUserHandle ? 'sent' : 'received'}`;
+
+                let bodyLayout = `<span class="username">${item.sender}</span>`;
+                if (item.messageText) bodyLayout += `<div>${item.messageText}</div>`;
+                wrapper.innerHTML = bodyLayout;
+
+                if (item.fileBlob) {
+                    if (item.viewOnceFlag) {
+                        if (!item.spent) {
+                            const btn = document.createElement("button");
+                            btn.className = "view-once-btn";
+                            btn.innerHTML = "1️⃣ Reveal View Once Media";
+                            btn.onclick = () => fireMediaInterception(item.uid);
+                            wrapper.appendChild(btn);
+                        } else {
+                            wrapper.appendChild(createDestroyedLabel());
+                        }
+                    } else {
+                        buildStandardMediaElement(wrapper, item.fileBlob, item.fileType);
+                    }
+                } else if (item.viewOnceFlag && item.spent) {
+                    wrapper.appendChild(createDestroyedLabel());
+                }
+
+                chatContainer.appendChild(wrapper);
+            });
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function createDestroyedLabel() {
+            const div = document.createElement("div");
+            div.className = "destroyed-text";
+            div.innerHTML = "🔓 Opened & Wiped from RAM";
+            return div;
+        }
+
+        function buildStandardMediaElement(targetDiv, dataUrl, mimeType) {
+            if (mimeType && mimeType.startsWith("image/")) {
+                const image = document.createElement("img");
+                image.src = dataUrl;
+                image.className = "media-preview";
+                targetDiv.appendChild(image);
+            } else if (mimeType && mimeType.startsWith("video/")) {
+                const video = document.createElement("video");
+                video.src = dataUrl;
+                video.className = "media-preview";
+                video.controls = true;
+                targetDiv.appendChild(video);
+            }
+        }
+
+        // ============================================================
+        // VIEW-ONCE HANDLER
+        // ============================================================
+        function fireMediaInterception(uid) {
+            const index = memoryArrayLog.findIndex(m => m.uid === uid);
+            if (index !== -1) {
+                const node = memoryArrayLog[index];
+                
+                const sandboxedWindow = window.open("", "_blank", "width=700,height=700");
+                if (sandboxedWindow) {
+                    sandboxedWindow.document.write(`
+                        <body style="margin:0; background:#0b141a; display:flex; justify-content:center; align-items:center; height:100vh;">
+                            ${node.fileType && node.fileType.startsWith('image/') ? 
+                                `<img src="${node.fileBlob}" style="max-width:95%; max-height:95%; border-radius:8px; box-shadow:0 0 20px rgba(0,0,0,0.5);">` : 
+                                `<video src="${node.fileBlob}" controls autoplay style="max-width:95%; max-height:95%;">`
+                            }
+                        </body>
+                    `);
+                } else {
+                    alert("Popup blocker active. Please allow permission to view media payloads.");
+                    return;
+                }
+
+                URL.revokeObjectURL(node.fileBlob);
+                node.fileBlob = null;
+                node.spent = true;
+
+                // Update the message in Firebase so other clients see it's spent
+                // (optional – but nice for consistency)
+                messagesRef.orderByChild('uid').equalTo(uid).once('child_added', (snapshot) => {
+                    snapshot.ref.update({ spent: true, fileBlob: null });
+                });
+
+                renderWorkspaceDOM();
+            }
+        }
+
+        // ============================================================
+        // FILE HOOK
+        // ============================================================
+        function fileSelectionHook() {
+            const input = document.getElementById("file-input");
+            if (input.files.length > 0) {
+                document.getElementById("msg-text").placeholder = `File ready: [${input.files[0].name}]`;
+            }
+        }
+
+        // ============================================================
+        // CLEAR CHAT (WIPE ALL MESSAGES)
+        // ============================================================
+        function clearChat() {
+            if (confirm("Wipe all messages from the database? This cannot be undone.")) {
+                messagesRef.remove().then(() => {
+                    memoryArrayLog = [];
+                    renderWorkspaceDOM();
+                    document.getElementById("connection-indicator").innerText = "Room wiped clean.";
+                }).catch(err => alert("Error wiping: " + err.message));
+            }
+        }
+
+        // Optional: Load previous messages on start (if any)
+        // The 'child_added' listener will handle everything automatically.
+    </script>
+</body>
+</html>
