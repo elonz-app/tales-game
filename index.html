@@ -6,357 +6,555 @@
     <title>Blueman Space</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --bg-main: #060b0d;
+            --bg-surface: #0d1518;
+            --bg-input: #131f24;
+            --accent-blue: #00a3ff;
+            --accent-glow: rgba(0, 163, 255, 0.35);
+            --text-primary: #e9edef;
+            --text-secondary: #8696a0;
+            --signal-green: #00e676;
+            --signal-red: #ff3366;
+            --red-glow: rgba(255, 51, 102, 0.25);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            background-color: #0b141a;
-            color: #e9edef;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             height: 100vh;
+            height: -webkit-fill-available;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #10222b 0%, var(--bg-main) 70%);
         }
 
-        /* SPLASH / LOADING SCREEN */
+        .app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                padding: 20px;
+            }
+        }
+
+        /* PREMIUM DYNAMIC CUSTOM LOGO GRAPHIC */
+        .logo-mark {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-shape-1 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--accent-blue);
+            border-radius: 35% 65% 60% 40% / 40% 45% 55% 60%;
+            animation: morphGraphic 8s linear infinite;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .logo-shape-2 {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 2px dashed #0066ff;
+            border-radius: 60% 40% 40% 60% / 50% 60% 40% 50%;
+            animation: morphGraphic 5s linear infinite reverse;
+        }
+
+        .logo-core {
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #fff, 0 0 30px var(--accent-blue);
+            z-index: 2;
+        }
+
+        @keyframes morphGraphic {
+            0% { border-radius: 35% 65% 60% 40% / 40% 45% 55% 60%; transform: rotate(0deg); }
+            50% { border-radius: 50% 50% 30% 70% / 50% 30% 70% 50%; }
+            100% { border-radius: 35% 65% 60% 40% / 40% 45% 55% 60%; transform: rotate(360deg); }
+        }
+
+        /* LOADING HUB PORTAL WITH PERCENTAGE TRACKER */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0b141a;
+            background-color: var(--bg-main);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-
-        .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-
-        .blueman-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #00a3ff, #0066ff);
-            border-radius: 22px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 25px rgba(0, 163, 255, 0.4);
-            font-weight: bold;
-            font-size: 36px;
-            color: white;
-            letter-spacing: -1px;
+            opacity: 1;
         }
 
         .app-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #e9edef;
-            letter-spacing: 0.5px;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: #fff;
+            margin-top: 15px;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
         .progress-box {
-            width: 250px;
-            height: 3px;
-            background-color: #233138;
+            width: 220px;
+            height: 4px;
+            background-color: var(--bg-input);
             border-radius: 10px;
             overflow: hidden;
+            margin-top: 30px;
             position: relative;
         }
 
         .progress-bar {
             width: 0%;
             height: 100%;
-            background-color: #00a3ff;
-            box-shadow: 0 0 8px #00a3ff;
-            transition: width 0.1s linear;
+            background: linear-gradient(90deg, #0066ff, var(--accent-blue));
+            box-shadow: 0 0 10px var(--accent-blue);
         }
 
-        .status-text {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #8696a0;
-            letter-spacing: 0.5px;
-        }
-
-        /* AUTHENTICATION SCREEN */
-        #login-screen {
-            display: none; 
-            background: #111b21;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 380px;
-            border: 1px solid #222e35;
-        }
-
-        #login-screen h2 {
-            color: #e9edef;
-            margin-bottom: 8px;
-            font-size: 22px;
-        }
-
-        #login-screen p {
-            color: #8696a0;
+        .counter-text {
+            margin-top: 12px;
             font-size: 14px;
-            margin-bottom: 24px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(0, 163, 255, 0.2);
+        }
+
+        /* INTERACTION PORTAL LOCK */
+        #login-screen {
+            display: none;
+            background: var(--bg-surface);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.04);
+            animation: screenRise 0.5s cubic-bezier(0.1, 1, 0.1, 1) forwards;
+        }
+
+        @keyframes screenRise {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         input[type="password"], input[type="text"] {
             width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            border: 1px solid #2a3942;
-            background-color: #202c33;
-            color: #d1d7db;
-            border-radius: 8px;
+            padding: 16px;
+            margin: 10px 0;
+            border: 1px solid rgba(255,255,255,0.05);
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            border-radius: 14px;
             font-size: 15px;
         }
-        input:focus { outline: 1px solid #00a3ff; }
+        input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 163, 255, 0.2);
+        }
 
         button.action-btn {
             width: 100%;
-            padding: 14px;
-            background-color: #00a3ff;
+            padding: 16px;
+            background: linear-gradient(135deg, #0066ff, var(--accent-blue));
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
             margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(0, 102, 255, 0.3);
         }
-        button.action-btn:hover { background-color: #008be5; }
+        button.action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 163, 255, 0.5);
+        }
 
-        /* MAIN CHAT ENGINE WINDOW */
+        /* CORE WORKSPACE SCREEN CONTAINER */
         #chat-screen {
-            display: none; 
+            display: none;
             width: 100%;
-            max-width: 1000px;
-            height: 95vh;
-            background: #0b141a;
-            border: 1px solid #222e35;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-            border-radius: 12px;
+            height: 100%;
+            max-width: 1100px;
+            background: var(--bg-surface);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             flex-direction: column;
             overflow: hidden;
+            animation: screenRise 0.5s cubic-bezier(0.1, 1, 0.1, 1) forwards;
         }
 
+        @media (min-width: 768px) {
+            #chat-screen {
+                border-radius: 24px;
+                border: 1px solid rgba(255,255,255,0.04);
+                height: 90vh;
+            }
+        }
+
+        /* WORKSPACE HEADER INTERFACE */
         .chat-header {
-            background-color: #202c33;
-            padding: 14px 20px;
+            background-color: rgba(13, 21, 24, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #2a3942;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            z-index: 10;
         }
 
         .header-profile {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .header-avatar {
-            width: 40px;
-            height: 40px;
-            background: #00a3ff;
-            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-blue), #0066ff);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
             color: white;
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
-        .chat-header h3 { font-size: 16px; font-weight: 500; color: #e9edef;}
-        .chat-header .status { font-size: 12px; color: #8696a0; display: block;}
+        .chat-header h3 { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 0.3px;}
+        
+        /* PULSING ONLINE BEACON SYSTEM */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        .beacon-light {
+            width: 7px;
+            height: 7px;
+            background-color: var(--signal-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--signal-green);
+            animation: pulseBeacon 2s infinite;
+        }
+        .status-text-live {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--signal-green);
+            letter-spacing: 0.5px;
+        }
 
+        @keyframes pulseBeacon {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 14px var(--signal-green); }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* HYPER-PREMIUM CYBERPUNK TEARDOWN BUTTON */
+        .teardown-trigger {
+            padding: 12px 22px;
+            background: linear-gradient(135deg, rgba(255, 51, 102, 0.05), rgba(255, 51, 102, 0.12));
+            border: 1px solid rgba(255, 51, 102, 0.4);
+            border-radius: 14px;
+            color: #ff4d7d;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .teardown-trigger::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 51, 102, 0.15), transparent);
+            transition: all 0.6s ease;
+        }
+        .teardown-trigger:hover::before {
+            left: 100%;
+        }
+        .teardown-trigger:hover {
+            background: var(--signal-red);
+            color: white;
+            border-color: var(--signal-red);
+            box-shadow: 0 0 25px var(--red-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+        .teardown-trigger:active {
+            transform: translateY(1px);
+        }
+
+        /* STREAM TIMELINE INTERFACE */
         .message-area {
             flex: 1;
             padding: 24px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            background-color: #0b141a;
-            background-image: radial-gradient(#152026 1px, transparent 0);
-            background-size: 16px 16px;
+            gap: 12px;
+            background-color: var(--bg-main);
+            background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 0);
+            background-size: 24px 24px;
+            scroll-behavior: smooth;
         }
 
         .message {
-            max-width: 60%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14.5px;
-            line-height: 1.4;
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
             word-wrap: break-word;
-            position: relative;
+            animation: messagePop 0.3s cubic-bezier(0.1, 1, 0.1, 1) forwards;
         }
 
-        .message.sent { background-color: #005c4b; color: #e9edef; align-self: flex-end; }
-        .message.received { background-color: #202c33; color: #e9edef; align-self: flex-start; }
+        @keyframes messagePop {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @media (min-width: 768px) { .message { max-width: 55%; } }
+
+        .message.sent {
+            background: linear-gradient(135deg, #005c4b, #004d3f);
+            color: var(--text-primary);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .message.received {
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
 
         .message .username {
-            font-weight: 600;
-            font-size: 11.5px;
-            color: #00a3ff;
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--accent-blue);
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .media-preview {
             max-width: 100%;
-            max-height: 280px;
-            border-radius: 6px;
-            margin-top: 6px;
+            max-height: 300px;
+            border-radius: 12px;
+            margin-top: 8px;
             display: block;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
         .view-once-btn {
-            background-color: rgba(0, 163, 255, 0.15);
-            color: #00a3ff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px dashed #00a3ff;
+            background-color: rgba(0, 163, 255, 0.1);
+            color: var(--accent-blue);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px dashed rgba(0, 163, 255, 0.4);
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 13px;
-            margin-top: 6px;
-            transition: background 0.2s;
+            font-weight: 600;
+            margin-top: 8px;
         }
-        .view-once-btn:hover { background-color: rgba(0, 163, 255, 0.25); }
+        .view-once-btn:hover {
+            background-color: rgba(0, 163, 255, 0.2);
+            border-color: var(--accent-blue);
+        }
 
         .destroyed-text {
-            color: #8696a0;
+            color: var(--text-secondary);
             font-style: italic;
             font-size: 13px;
-            margin-top: 6px;
+            margin-top: 8px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
+        /* CONTROL / INPUT WORKSPACE CONSOLE */
         .input-bar {
-            background-color: #202c33;
-            padding: 12px 20px;
+            background-color: var(--bg-surface);
+            padding: 16px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            border-top: 1px solid rgba(255,255,255,0.04);
         }
 
         .input-bar input[type="text"] {
-            flex: 1; margin: 0; border: none;
-            padding: 12px 16px; background-color: #2a3942;
-            border-radius: 8px; color: #d1d7db;
+            flex: 1; margin: 0; border: 1px solid rgba(255,255,255,0.03);
+            padding: 14px 18px; background-color: var(--bg-input);
+            border-radius: 14px; color: var(--text-primary);
+            font-size: 15px;
         }
 
         .file-label {
-            cursor: pointer; font-size: 22px; color: #8696a0;
+            cursor: pointer; font-size: 20px; color: var(--text-secondary);
+            padding: 4px;
         }
+        .file-label:hover { color: #fff; transform: scale(1.1); }
         #file-input { display: none; }
 
         .view-once-toggle {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 13px; color: #8696a0; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-secondary); cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
         }
-        .view-once-toggle input { accent-color: #00a3ff; }
+        .view-once-toggle input { width: 16px; height: 16px; accent-color: var(--accent-blue); }
 
         .send-btn {
-            background-color: #00a3ff; color: white; border: none;
-            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(135deg, #0066ff, var(--accent-blue)); 
+            color: white; border: none;
+            width: 46px; height: 46px; border-radius: 14px;
             cursor: pointer; display: flex; align-items: center;
             justify-content: center; font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+            flex-shrink: 0;
+        }
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(0, 163, 255, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <div class="logo-container">
-            <div class="blueman-logo">B</div>
+    <div class="app-container">
+        <div id="splash-screen">
+            <div class="logo-mark">
+                <div class="logo-shape-1"></div>
+                <div class="logo-shape-2"></div>
+                <div class="logo-core"></div>
+            </div>
             <div class="app-title">BLUEMAN</div>
+            <div class="progress-box">
+                <div class="progress-bar" id="load-bar"></div>
+            </div>
+            <div class="counter-text" id="load-counter">0%</div>
         </div>
-        <div class="progress-box">
-            <div class="progress-bar" id="load-bar"></div>
-        </div>
-        <div class="status-text" id="load-status">Initializing workspace...</div>
-    </div>
 
-    <div id="login-screen">
-        <div class="blueman-logo" style="margin: 0 auto 20px auto;">B</div>
-        <h2>Enter Gateway Portal</h2>
-        <p>Supabase Cloud Connection Enabled</p>
-        <input type="text" id="username-input" placeholder="Pick a display handle" autocomplete="off" />
-        <input type="password" id="passcode-input" placeholder="Access key passcode" />
-        <button class="action-btn" onclick="verifyCredentials()">Initialize Link</button>
-    </div>
-
-    <div id="chat-screen">
-        <div class="chat-header">
-            <div class="header-profile">
-                <div class="header-avatar" id="user-avatar">U</div>
-                <div>
-                    <h3 id="room-identity">Blueman Space</h3>
-                    <span class="status" id="connection-indicator">Initializing Supabase pipeline...</span>
+        <div id="login-screen">
+            <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                <div class="logo-mark" style="width:60px; height:60px;">
+                    <div class="logo-shape-1"></div>
+                    <div class="logo-shape-2"></div>
+                    <div class="logo-core" style="width:20px; height:20px;"></div>
                 </div>
             </div>
-            <button onclick="window.location.reload()" style="padding: 8px 14px; background: #ea0038; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer;">Teardown</button>
+            <h2 style="margin-bottom:4px; font-weight:700;">Gateway Access</h2>
+            <p style="color:var(--text-secondary); font-size:14px; margin-bottom:24px;">Cloud Core Interconnect Active</p>
+            <input type="text" id="username-input" placeholder="Pick a display handle" autocomplete="off" />
+            <input type="password" id="passcode-input" placeholder="Access key passcode" />
+            <button class="action-btn" onclick="verifyCredentials()">Initialize Link</button>
         </div>
 
-        <div class="message-area" id="message-area"></div>
+        <div id="chat-screen">
+            <div class="chat-header">
+                <div class="header-profile">
+                    <div class="header-avatar" id="user-avatar">U</div>
+                    <div>
+                        <h3>Blueman Space</h3>
+                        <div class="status-container">
+                            <div class="beacon-light"></div>
+                            <span class="status-text-live">Online</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="teardown-trigger" onclick="window.location.reload()">Teardown</button>
+            </div>
 
-        <form class="input-bar" id="chat-form" onsubmit="dispatchPayload(event)">
-            <label for="file-input" class="file-label" title="Upload Media File">📎</label>
-            <input type="file" id="file-input" accept="image/*,video/*" onchange="fileSelectionHook()" />
-            <input type="text" id="msg-text" placeholder="Type safe message..." autocomplete="off" />
-            <label class="view-once-toggle">
-                <input type="checkbox" id="view-once-chk" /> 1️⃣ View Once
-            </label>
-            <button type="submit" class="send-btn">➔</button>
-        </form>
+            <div class="message-area" id="message-area"></div>
+
+            <form class="input-bar" id="chat-form" onsubmit="dispatchPayload(event)">
+                <label for="file-input" class="file-label" title="Upload Media File">📎</label>
+                <input type="file" id="file-input" accept="image/*,video/*" onchange="fileSelectionHook()" />
+                <input type="text" id="msg-text" placeholder="Type safe message..." autocomplete="off" />
+                <label class="view-once-toggle">
+                    <input type="checkbox" id="view-once-chk" /> 1️⃣ View Once
+                </label>
+                <button type="submit" class="send-btn">➔</button>
+            </form>
+        </div>
     </div>
 
     <script>
         const TARGET_PASS = "blueman";
         
-        // Your database routing URL
+        // Configured cloud system nodes
         const SUPABASE_URL = "https://tgyxaklevhsbyorogzxx.supabase.co";
-        // 2. YOUR ACTIVE API PUBLISHABLE KEY
         const SUPABASE_ANON_KEY = "Sb_publishable_99Bg8s2ZaO17gE3WqUOQlA_a9_dt644";
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUserHandle = "User";
         let memoryArrayLog = [];
 
-        // Loading Bar Setup
+        // Dynamic Loading Tracker Counter Logic
         window.addEventListener("DOMContentLoaded", () => {
             const bar = document.getElementById("load-bar");
+            const counter = document.getElementById("load-counter");
             let progress = 0;
+            
             const loaderInterval = setInterval(() => {
-                progress += 10;
+                progress += 2;
                 bar.style.width = `${progress}%`;
+                counter.innerText = `${progress}%`;
+                
                 if (progress >= 100) {
                     clearInterval(loaderInterval);
-                    document.getElementById("splash-screen").style.display = "none";
-                    document.getElementById("login-screen").style.display = "block";
+                    document.getElementById("splash-screen").style.opacity = "0";
+                    setTimeout(() => {
+                        document.getElementById("splash-screen").style.display = "none";
+                        document.getElementById("login-screen").style.display = "block";
+                    }, 250);
                 }
-            }, 50);
+            }, 30);
         });
 
         function verifyCredentials() {
@@ -376,16 +574,9 @@
             }
         }
 
-        // LISTEN FOR LIVE CHAT RECORDS VIA SUPABASE REALTIME
         function initializeSupabaseRealtime() {
-            const statusIndicator = document.getElementById("connection-indicator");
-            statusIndicator.innerText = "Connected to Supabase Pipeline";
-            statusIndicator.style.color = "#00a3ff";
-
-            // Fetch any existing old messages on launch
             fetchHistoricalLog();
 
-            // Subscribe to live table changes
             supabaseClient
                 .channel('room-messages')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -398,7 +589,6 @@
                 .subscribe();
         }
 
-        // Initial loading fetch so history stays persistent
         async function fetchHistoricalLog() {
             const { data, error } = await supabaseClient
                 .from('messages')
@@ -414,11 +604,10 @@
         function fileSelectionHook() {
             const input = document.getElementById("file-input");
             if (input.files.length > 0) {
-                document.getElementById("msg-text").placeholder = `File ready: [${input.files[0].name}]`;
+                document.getElementById("msg-text").placeholder = `File: [${input.files[0].name}]`;
             }
         }
 
-        // DISPATCH/SAVE TO POSTGRES VIA SUPABASE CLIENT
         async function dispatchPayload(e) {
             e.preventDefault();
             const textField = document.getElementById("msg-text");
@@ -449,7 +638,6 @@
             memoryArrayLog.push(messageObject);
             renderWorkspaceDOM();
 
-            // Insert directly into database table rows
             await supabaseClient.from('messages').insert([messageObject]);
 
             textField.value = "";
@@ -475,7 +663,7 @@
                         if (!item.spent) {
                             const btn = document.createElement("button");
                             btn.className = "view-once-btn";
-                            btn.innerHTML = "1️⃣ Reveal View Once Media";
+                            btn.innerHTML = "1️⃣ Open View Once Media";
                             btn.onclick = () => fireMediaInterception(item.uid);
                             wrapper.appendChild(btn);
                         } else {
@@ -522,9 +710,9 @@
                 const sandboxedWindow = window.open("", "_blank", "width=700,height=700");
                 if (sandboxedWindow) {
                     sandboxedWindow.document.write(`
-                        <body style="margin:0; background:#0b141a; display:flex; justify-content:center; align-items:center; height:100vh;">
+                        <body style="margin:0; background:#060b0d; display:flex; justify-content:center; align-items:center; height:100vh;">
                             ${node.fileType.startsWith('image/') ? 
-                                `<img src="${node.fileBlob}" style="max-width:95%; max-height:95%; border-radius:8px;">` : 
+                                `<img src="${node.fileBlob}" style="max-width:95%; max-height:95%; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">` : 
                                 `<video src="${node.fileBlob}" controls autoplay style="max-width:95%; max-height:95%;">`
                             }
                         </body>
