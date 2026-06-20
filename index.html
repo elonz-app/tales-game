@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Blueman Space</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -24,14 +24,13 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
             height: 100vh;
-            height: -webkit-fill-available;
+            width: 100vw;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,16 +44,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0;
         }
 
-        @media (min-width: 768px) {
-            .app-container {
-                padding: 20px;
-            }
-        }
-
-        /* PREMIUM DYNAMIC CUSTOM LOGO GRAPHIC */
+        /* LOGO MECHANICS */
         .logo-mark {
             position: relative;
             width: 70px;
@@ -99,7 +91,7 @@
             100% { border-radius: 35% 65% 60% 40% / 40% 45% 55% 60%; transform: rotate(360deg); }
         }
 
-        /* LOADING HUB PORTAL WITH PERCENTAGE TRACKER */
+        /* SPLASH SCREEN */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -109,7 +101,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            opacity: 1;
+            transition: opacity 0.25s ease;
         }
 
         .app-title {
@@ -128,7 +120,6 @@
             border-radius: 10px;
             overflow: hidden;
             margin-top: 30px;
-            position: relative;
         }
 
         .progress-bar {
@@ -144,10 +135,9 @@
             font-weight: 700;
             color: var(--accent-blue);
             letter-spacing: 1px;
-            text-shadow: 0 0 8px rgba(0, 163, 255, 0.2);
         }
 
-        /* INTERACTION PORTAL LOCK */
+        /* GATEWAY LOCK */
         #login-screen {
             display: none;
             background: var(--bg-surface);
@@ -155,14 +145,14 @@
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             text-align: center;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             border: 1px solid rgba(255,255,255,0.04);
-            animation: screenRise 0.5s cubic-bezier(0.1, 1, 0.1, 1) forwards;
+            animation: screenRise 0.4s cubic-bezier(0.1, 1, 0.1, 1) forwards;
         }
 
         @keyframes screenRise {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(25px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -175,6 +165,7 @@
             color: var(--text-primary);
             border-radius: 14px;
             font-size: 15px;
+            transition: all 0.2s ease;
         }
         input:focus {
             outline: none;
@@ -194,57 +185,58 @@
             cursor: pointer;
             margin-top: 15px;
             box-shadow: 0 5px 15px rgba(0, 102, 255, 0.3);
+            transition: all 0.2s ease;
         }
         button.action-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 163, 255, 0.5);
         }
 
-        /* CORE WORKSPACE SCREEN CONTAINER */
+        /* WHATSAPP-STYLE FIXED CHATROOM SCREEN STRUCTURING */
         #chat-screen {
             display: none;
             width: 100%;
             height: 100%;
-            max-width: 1100px;
             background: var(--bg-surface);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             flex-direction: column;
+            position: relative;
             overflow: hidden;
-            animation: screenRise 0.5s cubic-bezier(0.1, 1, 0.1, 1) forwards;
         }
 
         @media (min-width: 768px) {
             #chat-screen {
+                max-width: 1100px;
+                height: 90vh;
                 border-radius: 24px;
                 border: 1px solid rgba(255,255,255,0.04);
-                height: 90vh;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             }
         }
 
-        /* WORKSPACE HEADER INTERFACE */
+        /* STATIC TOP HEADER BAR */
         .chat-header {
-            background-color: rgba(13, 21, 24, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 16px 24px;
+            height: 70px;
+            background-color: var(--bg-surface);
+            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.04);
+            flex-shrink: 0; /* Prevents header from resizing or crushing */
             z-index: 10;
         }
 
         .header-profile {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .header-avatar {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             background: linear-gradient(135deg, var(--accent-blue), #0066ff);
-            border-radius: 14px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -253,80 +245,67 @@
             box-shadow: 0 4px 12px var(--accent-glow);
         }
 
-        .chat-header h3 { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 0.3px;}
+        .chat-header h3 { font-size: 16px; font-weight: 600; color: #fff;}
         
-        /* PULSING ONLINE BEACON SYSTEM */
         .status-container {
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         .beacon-light {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background-color: var(--signal-green);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--signal-green);
+            box-shadow: 0 0 8px var(--signal-green);
             animation: pulseBeacon 2s infinite;
         }
         .status-text-live {
             font-size: 12px;
             font-weight: 600;
             color: var(--signal-green);
-            letter-spacing: 0.5px;
         }
 
         @keyframes pulseBeacon {
             0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 14px var(--signal-green); }
+            50% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(0.9); opacity: 0.6; }
         }
 
-        /* HYPER-PREMIUM CYBERPUNK TEARDOWN BUTTON */
+        /* PREMIUM TEARDOWN BUTTON */
         .teardown-trigger {
-            padding: 12px 22px;
+            padding: 10px 18px;
             background: linear-gradient(135deg, rgba(255, 51, 102, 0.05), rgba(255, 51, 102, 0.12));
             border: 1px solid rgba(255, 51, 102, 0.4);
-            border-radius: 14px;
+            border-radius: 12px;
             color: #ff4d7d;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
             cursor: pointer;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
             position: relative;
             overflow: hidden;
-        }
-        .teardown-trigger::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 51, 102, 0.15), transparent);
-            transition: all 0.6s ease;
-        }
-        .teardown-trigger:hover::before {
-            left: 100%;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .teardown-trigger:hover {
             background: var(--signal-red);
             color: white;
             border-color: var(--signal-red);
-            box-shadow: 0 0 25px var(--red-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px var(--red-glow);
             transform: translateY(-1px);
         }
-        .teardown-trigger:active {
-            transform: translateY(1px);
-        }
 
-        /* STREAM TIMELINE INTERFACE */
+        /* TRUE WHATSAPP TIMELINE IN-SCROLL LAYER */
         .message-area {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
+            flex: 1;               /* Takes exactly the remaining frame block */
+            overflow-y: auto;       /* Enables custom scroll viewport inside container only */
+            overflow-x: hidden;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -334,20 +313,21 @@
             background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 0);
             background-size: 24px 24px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* Butter smooth mobile inertial physics */
         }
 
         .message {
             max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.5;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14.5px;
+            line-height: 1.45;
             word-wrap: break-word;
-            animation: messagePop 0.3s cubic-bezier(0.1, 1, 0.1, 1) forwards;
+            animation: messagePop 0.2s cubic-bezier(0.1, 1, 0.1, 1) forwards;
         }
 
         @keyframes messagePop {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
@@ -358,15 +338,15 @@
             color: var(--text-primary);
             align-self: flex-end;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .message.received {
             background-color: var(--bg-input);
             color: var(--text-primary);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.02);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
         .message .username {
@@ -374,16 +354,15 @@
             font-size: 11px;
             color: var(--accent-blue);
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .media-preview {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
-            margin-top: 8px;
+            max-height: 280px;
+            border-radius: 10px;
+            margin-top: 6px;
             display: block;
             border: 1px solid rgba(255,255,255,0.05);
         }
@@ -391,76 +370,80 @@
         .view-once-btn {
             background-color: rgba(0, 163, 255, 0.1);
             color: var(--accent-blue);
-            padding: 12px 16px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
             border: 1px dashed rgba(0, 163, 255, 0.4);
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 13px;
+            gap: 8px;
+            font-size: 12.5px;
             font-weight: 600;
-            margin-top: 8px;
+            margin-top: 6px;
+            transition: background 0.2s;
         }
-        .view-once-btn:hover {
-            background-color: rgba(0, 163, 255, 0.2);
-            border-color: var(--accent-blue);
-        }
+        .view-once-btn:hover { background-color: rgba(0, 163, 255, 0.2); }
 
         .destroyed-text {
             color: var(--text-secondary);
             font-style: italic;
-            font-size: 13px;
-            margin-top: 8px;
+            font-size: 12.5px;
+            margin-top: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        /* CONTROL / INPUT WORKSPACE CONSOLE */
+        /* FIXED FOOTER CONTROL BAR */
         .input-bar {
+            height: 76px;
             background-color: var(--bg-surface);
-            padding: 16px 20px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             border-top: 1px solid rgba(255,255,255,0.04);
+            flex-shrink: 0; /* Stops bottom element from shifting offscreen */
+            z-index: 10;
         }
 
         .input-bar input[type="text"] {
-            flex: 1; margin: 0; border: 1px solid rgba(255,255,255,0.03);
-            padding: 14px 18px; background-color: var(--bg-input);
-            border-radius: 14px; color: var(--text-primary);
+            flex: 1; margin: 0; border: 1px solid rgba(255,255,255,0.02);
+            padding: 12px 16px; background-color: var(--bg-input);
+            border-radius: 12px; color: var(--text-primary);
             font-size: 15px;
+            transition: border-color 0.2s;
         }
 
         .file-label {
-            cursor: pointer; font-size: 20px; color: var(--text-secondary);
+            cursor: pointer; font-size: 18px; color: var(--text-secondary);
             padding: 4px;
+            transition: transform 0.2s, color 0.2s;
         }
         .file-label:hover { color: #fff; transform: scale(1.1); }
         #file-input { display: none; }
 
         .view-once-toggle {
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 6px;
             font-size: 13px; color: var(--text-secondary); cursor: pointer;
             font-weight: 600;
             white-space: nowrap;
         }
-        .view-once-toggle input { width: 16px; height: 16px; accent-color: var(--accent-blue); }
+        .view-once-toggle input { width: 15px; height: 15px; accent-color: var(--accent-blue); }
 
         .send-btn {
             background: linear-gradient(135deg, #0066ff, var(--accent-blue)); 
             color: white; border: none;
-            width: 46px; height: 46px; border-radius: 14px;
+            width: 44px; height: 44px; border-radius: 12px;
             cursor: pointer; display: flex; align-items: center;
-            justify-content: center; font-size: 16px;
+            justify-content: center; font-size: 15px;
             box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
             flex-shrink: 0;
+            transition: transform 0.2s;
         }
         .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 18px rgba(0, 163, 255, 0.4);
+            transform: scale(1.04);
+            box-shadow: 0 6px 16px rgba(0, 163, 255, 0.4);
         }
     </style>
 </head>
@@ -641,7 +624,7 @@
             await supabaseClient.from('messages').insert([messageObject]);
 
             textField.value = "";
-            textField.placeholder = "Type safe message...";
+            textField.placeholder = "Type safe message..."
             fileInput.value = "";
             viewOnceBox.checked = false;
         }
